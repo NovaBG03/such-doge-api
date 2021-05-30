@@ -4,6 +4,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import xyz.suchdoge.webapi.model.DogeUser;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 
 public class DogeUserDetails implements UserDetails {
@@ -21,7 +22,7 @@ public class DogeUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return dogeUser.getPassword();
+        return dogeUser.getEncodedPassword();
     }
 
     @Override
@@ -46,6 +47,7 @@ public class DogeUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return dogeUser.isEnabled();
+        LocalDateTime enabledAt = dogeUser.getEnabledAt();
+        return enabledAt != null && enabledAt.isBefore(LocalDateTime.now());
     }
 }

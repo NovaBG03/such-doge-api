@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import xyz.suchdoge.webapi.model.DogeUser;
 import xyz.suchdoge.webapi.repository.DogeUserRepository;
 
+import java.time.LocalDateTime;
+
 @Component
 public class Bootstrap implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
@@ -25,8 +27,8 @@ public class Bootstrap implements CommandLineRunner {
         DogeUser user = DogeUser.builder()
                 .username("ivan")
                 .email("ivan@abv.bg")
-                .password(passwordEncoder.encode("ivan"))
-                .isEnabled(true)
+                .encodedPassword(passwordEncoder.encode("ivan"))
+                .enabledAt(LocalDateTime.now())
                 .build();
 
         dogeUserRepository.save(user);
