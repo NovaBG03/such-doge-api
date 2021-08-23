@@ -7,18 +7,25 @@ import xyz.suchdoge.webapi.repository.DogeUserRepository;
 @Service
 public class DogeUserVerifier {
     private final DogeUserRepository dogeUserRepository;
+    private final EmailVerifier emailVerifier;
 
-    public DogeUserVerifier(DogeUserRepository dogeUserRepository) {
+    public DogeUserVerifier(DogeUserRepository dogeUserRepository, EmailVerifier emailVerifier) {
         this.dogeUserRepository = dogeUserRepository;
+        this.emailVerifier = emailVerifier;
     }
 
     public void verifyUsername(String username) {
+        // todo add more validations
         if (dogeUserRepository.existsByUsername(username)) {
             throw new RuntimeException("DOGE_USER_USERNAME_EXISTS");
         }
     }
 
     public void verifyEmail(String email) {
+        if (!emailVerifier.isValidEmail(email)) {
+            throw new RuntimeException("DOGE_USER_EMAIL_INVALID");
+        }
+
         if (dogeUserRepository.existsByEmail(email)) {
             throw new RuntimeException("DOGE_USER_EMAIL_EXISTS");
         }

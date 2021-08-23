@@ -7,6 +7,7 @@ import org.hibernate.validator.constraints.Length;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.UUID;
 
 @Entity
@@ -57,4 +58,7 @@ public class DogeUser {
     // @FutureOrPresent
     @Column()
     private LocalDateTime enabledAt;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private Collection<ConfirmationToken> confirmationTokens;
 }

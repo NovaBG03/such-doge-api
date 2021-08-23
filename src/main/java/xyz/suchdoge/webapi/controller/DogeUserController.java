@@ -7,7 +7,7 @@ import xyz.suchdoge.webapi.dto.user.RegisterUserDto;
 import xyz.suchdoge.webapi.mapper.UserMapper;
 import xyz.suchdoge.webapi.model.DogeUser;
 import xyz.suchdoge.webapi.service.DogeUserService;
-import xyz.suchdoge.webapi.service.RegisterService;
+import xyz.suchdoge.webapi.service.register.RegisterService;
 
 @RestController
 public class DogeUserController {
