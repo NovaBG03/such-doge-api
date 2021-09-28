@@ -1,10 +1,12 @@
 package xyz.suchdoge.webapi.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.model.ConfirmationToken;
 import xyz.suchdoge.webapi.model.DogeUser;
 import xyz.suchdoge.webapi.service.register.RegisterConfig;
@@ -37,7 +39,7 @@ public class EmailService {
 
     public void sendEmail(String email, String subject, String content) {
         if (!this.emailVerifier.isValidEmail(email)) {
-            throw new RuntimeException("SENDING_EMAIL_INVALID");
+            throw new DogeHttpException("SENDING_EMAIL_INVALID", HttpStatus.BAD_REQUEST);
         }
 
         SimpleMailMessage message = new SimpleMailMessage();
@@ -49,7 +51,7 @@ public class EmailService {
         try {
             mailSender.send(message);
         } catch (MailException me) {
-            throw new RuntimeException("CAN_NOT_SEND");
+            throw new DogeHttpException("CAN_NOT_SEND", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

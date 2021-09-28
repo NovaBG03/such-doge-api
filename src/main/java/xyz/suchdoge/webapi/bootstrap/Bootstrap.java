@@ -20,14 +20,16 @@ public class Bootstrap implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        loadUsers();
+        if (dogeUserRepository.count() == 0) {
+            loadUsers();
+        }
     }
 
     private void loadUsers() {
         DogeUser user = DogeUser.builder()
                 .username("ivan")
                 .email("ivan@abv.bg")
-                .encodedPassword(passwordEncoder.encode("ivan"))
+                .encodedPassword(passwordEncoder.encode("Ivan123"))
                 .enabledAt(LocalDateTime.now())
                 .build();
 

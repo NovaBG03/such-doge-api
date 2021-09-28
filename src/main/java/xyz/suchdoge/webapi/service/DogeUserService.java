@@ -36,8 +36,7 @@ public class DogeUserService implements UserDetailsService {
 
     public DogeUser getUserByUsername(String username) {
         return dogeUserRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        String.format("DOGE_USER_%s_NOT_FOUND", username)));
+                .orElseThrow(() -> new UsernameNotFoundException(username));
     }
 
     public DogeUser createUser(String username, String email, String password) {
