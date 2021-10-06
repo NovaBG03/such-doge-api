@@ -1,5 +1,6 @@
 package xyz.suchdoge.webapi.model;
 
+import com.google.common.collect.Sets;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.validator.constraints.Length;
@@ -8,9 +9,11 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
+@Table(name = "user")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,9 +22,9 @@ import java.util.UUID;
 public class DogeUser {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(nullable = false, updatable = false)
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
+    @Column(columnDefinition = "VARCHAR(255)", nullable = false, updatable = false)
     private UUID id;
 
     @NotNull(message = "DOGE_USER_USERNAME_NULL")
@@ -44,11 +47,14 @@ public class DogeUser {
     @Column()
     private String encodedPassword;
 
-    // TODO create different table for roles @JoinColumn
     @Builder.Default
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 15)
-    private DogeUserRole role = DogeUserRole.USER;
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.DETACH}, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_role",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<DogeRole> roles = Sets.newHashSet();
 
     // TODO add validation for doge public key
     @Column()
@@ -61,4 +67,12 @@ public class DogeUser {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private Collection<ConfirmationToken> confirmationTokens;
+
+    public void addRole(DogeRole role) {
+        this.roles.add(role);
+    }
+
+    public void addRoles(Collection<DogeRole> roles) {
+        this.roles.addAll(roles);
+    }
 }

@@ -5,8 +5,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import xyz.suchdoge.webapi.model.DogeRole;
+import xyz.suchdoge.webapi.model.DogeRoleLevel;
 import xyz.suchdoge.webapi.model.DogeUser;
-import xyz.suchdoge.webapi.model.DogeUserRole;
+import xyz.suchdoge.webapi.repository.DogeRoleRepository;
 import xyz.suchdoge.webapi.repository.DogeUserRepository;
 import xyz.suchdoge.webapi.security.DogeUserDetails;
 import xyz.suchdoge.webapi.service.validator.DogeUserVerifier;
@@ -16,15 +18,18 @@ import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 public class DogeUserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final DogeUserRepository dogeUserRepository;
+    private final DogeRoleRepository dogeRoleRepository;
     private final DogeUserVerifier dogeUserVerifier;
     private final ModelValidatorService modelValidatorService;
 
     public DogeUserService(PasswordEncoder passwordEncoder,
                            DogeUserRepository dogeUserRepository,
+                           DogeRoleRepository dogeRoleRepository,
                            DogeUserVerifier dogeUserVerifier,
                            ModelValidatorService modelValidatorService) {
         this.passwordEncoder = passwordEncoder;
         this.dogeUserRepository = dogeUserRepository;
+        this.dogeRoleRepository = dogeRoleRepository;
         this.dogeUserVerifier = dogeUserVerifier;
         this.modelValidatorService = modelValidatorService;
     }
@@ -44,14 +49,17 @@ public class DogeUserService implements UserDetailsService {
         dogeUserVerifier.verifyEmail(email);
         dogeUserVerifier.verifyPassword(password);
 
-        DogeUser user = DogeUser.builder()
+        final DogeUser user = DogeUser.builder()
                 .username(username)
                 .email(email)
                 .encodedPassword(passwordEncoder.encode(password))
-                .role(DogeUserRole.USER)
                 .build();
 
         modelValidatorService.validate(user);
+
+        DogeRole userRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.USER);
+        user.addRole(userRole);
+
         return dogeUserRepository.save(user);
     }
 }

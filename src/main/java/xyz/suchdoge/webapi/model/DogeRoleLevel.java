@@ -6,18 +6,18 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Set;
 
-public enum DogeUserRole {
+public enum DogeRoleLevel {
     USER("ROLE_USER"),
     MODERATOR("ROLE_MODERATOR"),
     ADMIN("ROLE_ADMIN");
 
-    private final String role;
+    private final String level;
 
-    DogeUserRole(String role) {
-        this.role = role;
+    DogeRoleLevel(String level) {
+        this.level = level;
     }
 
     public Set<GrantedAuthority> getAuthorities() {
-        return Sets.newHashSet(new SimpleGrantedAuthority(role));
+        return Sets.newHashSet(new SimpleGrantedAuthority(level));
     }
 }

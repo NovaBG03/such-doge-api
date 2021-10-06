@@ -6,6 +6,7 @@ import xyz.suchdoge.webapi.model.DogeUser;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 public class DogeUserDetails implements UserDetails {
     private final DogeUser dogeUser;
@@ -17,7 +18,10 @@ public class DogeUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return dogeUser.getRole().getAuthorities();
+        return dogeUser.getRoles()
+                .stream()
+                .flatMap(role -> role.getLevel().getAuthorities().stream())
+                .collect(Collectors.toSet());
     }
 
     @Override
