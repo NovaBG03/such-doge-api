@@ -3,6 +3,7 @@ package xyz.suchdoge.webapi.model;
 import com.google.common.collect.Sets;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
@@ -24,7 +25,8 @@ public class DogeUser {
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(columnDefinition = "VARCHAR(255)", nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false)
+    @Type(type="org.hibernate.type.UUIDCharType")
     private UUID id;
 
     @NotNull(message = "DOGE_USER_USERNAME_NULL")
@@ -74,5 +76,9 @@ public class DogeUser {
 
     public void addRoles(Collection<DogeRole> roles) {
         this.roles.addAll(roles);
+    }
+
+    public boolean isEnabled() {
+        return this.enabledAt != null && this.enabledAt.isBefore(LocalDateTime.now());
     }
 }

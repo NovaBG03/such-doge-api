@@ -51,7 +51,6 @@ public class DogeUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        LocalDateTime enabledAt = dogeUser.getEnabledAt();
-        return enabledAt != null && enabledAt.isBefore(LocalDateTime.now());
+        return this.dogeUser.isEnabled();
     }
 }

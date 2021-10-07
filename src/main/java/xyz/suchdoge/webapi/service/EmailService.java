@@ -32,8 +32,7 @@ public class EmailService {
                 confirmationToken.getToken().toString();
 
         final String subject = "Activate your SuchDoge account";
-        final String content = "To activate your SuchDoge account click here: " +
-                registerUrl;
+        final String content = "To activate your SuchDoge account click here: " + registerUrl;
         this.sendEmail(user.getEmail(), subject, content);
     }
 
