@@ -1,6 +1,5 @@
 package xyz.suchdoge.webapi.service.register;
 
-import antlr.Token;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
@@ -12,6 +11,7 @@ import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ConfirmationTokenService {
@@ -42,14 +42,28 @@ public class ConfirmationTokenService {
         return confirmationTokenRepository.save(token);
     }
 
-    public DogeUser getOwningUser(UUID token) {
-        ConfirmationToken confirmationToken = this.confirmationTokenRepository.getByToken(token)
+    public ConfirmationToken getConfirmationToken(UUID token) {
+        return this.confirmationTokenRepository.getByToken(token)
                 .orElseThrow(() -> new DogeHttpException("CONFIRM_TOKEN_INVALID", HttpStatus.NOT_FOUND));
+    }
 
+    public DogeUser getOwningUser(ConfirmationToken confirmationToken) {
         if (confirmationToken.isExpired()) {
             throw new DogeHttpException("CONFIRM_TOKEN_EXPIRED", HttpStatus.NOT_ACCEPTABLE);
         }
 
         return confirmationToken.getUser();
+    }
+
+    public void deleteAllTokens(DogeUser user) {
+        this.confirmationTokenRepository.deleteAll(user.getConfirmationTokens());
+    }
+
+    public void deleteAllExpiredTokens(DogeUser user) {
+        this.confirmationTokenRepository.deleteAll(user
+                .getConfirmationTokens()
+                .stream()
+                .filter(confirmationToken -> confirmationToken.isExpired())
+                .collect(Collectors.toSet()));
     }
 }

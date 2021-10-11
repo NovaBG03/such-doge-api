@@ -1,12 +1,10 @@
 package xyz.suchdoge.webapi.service;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.model.DogeRole;
 import xyz.suchdoge.webapi.model.DogeRoleLevel;
 import xyz.suchdoge.webapi.model.DogeUser;
@@ -16,9 +14,6 @@ import xyz.suchdoge.webapi.security.DogeUserDetails;
 import xyz.suchdoge.webapi.service.register.ConfirmationTokenService;
 import xyz.suchdoge.webapi.service.validator.DogeUserVerifier;
 import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 public class DogeUserService implements UserDetailsService {
@@ -70,18 +65,5 @@ public class DogeUserService implements UserDetailsService {
         user.addRole(userRole);
 
         return dogeUserRepository.save(user);
-    }
-
-    public void activateUser(String token) {
-        DogeUser user = confirmationTokenService.getOwningUser(UUID.fromString(token));
-
-        if (user.isEnabled()) {
-            // todo schedule all confirmation tokens to be deleted
-            throw new DogeHttpException("DOGE_USER_ALREADY_ENABLED", HttpStatus.METHOD_NOT_ALLOWED);
-        }
-
-        user.setEnabledAt(LocalDateTime.now());
-        // todo schedule all confirmation tokens to be deleted
-        this.dogeUserRepository.save(user);
     }
 }
