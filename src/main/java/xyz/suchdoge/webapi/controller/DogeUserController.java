@@ -4,7 +4,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import xyz.suchdoge.webapi.dto.user.RegisterUserDto;
+import xyz.suchdoge.webapi.dto.user.UserRegisterDto;
 import xyz.suchdoge.webapi.service.register.RegisterService;
 
 @RestController
@@ -17,11 +17,11 @@ public class DogeUserController {
 
 
     @PostMapping("/register")
-    public void register(@RequestBody RegisterUserDto registerUserDto) {
+    public void register(@RequestBody UserRegisterDto userDto) {
         this.registerService.registerUser(
-                registerUserDto.getUsername(),
-                registerUserDto.getEmail(),
-                registerUserDto.getPassword()
+                userDto.getUsername(),
+                userDto.getEmail(),
+                userDto.getPassword()
         );
     }
 

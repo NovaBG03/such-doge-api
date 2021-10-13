@@ -70,6 +70,9 @@ public class DogeUser {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private Collection<ConfirmationToken> confirmationTokens;
 
+    @OneToMany(mappedBy = "publisher")
+    private Collection<Meme> memes;
+
     public void addRole(DogeRole role) {
         this.roles.add(role);
     }
@@ -80,5 +83,15 @@ public class DogeUser {
 
     public boolean isEnabled() {
         return this.enabledAt != null && this.enabledAt.isBefore(LocalDateTime.now());
+    }
+
+    public boolean hasAuthority(DogeRoleLevel roleLevel) {
+        return this.roles
+                .stream()
+                .anyMatch(role -> role.getLevel().equals(roleLevel));
+    }
+
+    public boolean isAdminOrModerator() {
+        return this.hasAuthority(DogeRoleLevel.MODERATOR) || this.hasAuthority(DogeRoleLevel.ADMIN);
     }
 }
