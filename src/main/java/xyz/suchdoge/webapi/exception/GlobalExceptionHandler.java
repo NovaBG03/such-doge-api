@@ -34,21 +34,29 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DogeHttpException.class)
     public void handleCustomException(HttpServletResponse res, DogeHttpException ex) throws IOException {
-        res.sendError(ex.getHttpStatus().value(), ex.getMessage());
+        if (!res.isCommitted()) {
+            res.sendError(ex.getHttpStatus().value(), ex.getMessage());
+        }
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public void handleUsernameNotFoundException(HttpServletResponse res, UsernameNotFoundException ex) throws IOException {
-        res.sendError(HttpStatus.NOT_FOUND.value(), String.format("DOGE_USER_%s_NOT_FOUND", ex.getMessage()));
+        if (!res.isCommitted()) {
+            res.sendError(HttpStatus.NOT_FOUND.value(), String.format("DOGE_USER_%s_NOT_FOUND", ex.getMessage()));
+        }
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public void handleAccessDeniedException(HttpServletResponse res) throws IOException {
-        res.sendError(HttpStatus.FORBIDDEN.value(), "Access denied");
+        if (!res.isCommitted()) {
+            res.sendError(HttpStatus.FORBIDDEN.value(), "Access denied");
+        }
     }
 
     @ExceptionHandler(Exception.class)
     public void handleException(HttpServletResponse res) throws IOException {
-        res.sendError(HttpStatus.BAD_REQUEST.value(), "Something went wrong");
+        if (!res.isCommitted()) {
+            res.sendError(HttpStatus.BAD_REQUEST.value(), "Something went wrong");
+        }
     }
 }

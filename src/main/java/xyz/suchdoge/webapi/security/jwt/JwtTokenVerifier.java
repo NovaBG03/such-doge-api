@@ -6,11 +6,13 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import xyz.suchdoge.webapi.exception.DogeHttpException;
 
 import javax.crypto.SecretKey;
 import javax.servlet.FilterChain;
@@ -68,9 +70,14 @@ public class JwtTokenVerifier extends OncePerRequestFilter {
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
+        } catch (JwtException e) {
+            throw new DogeHttpException("Auth token cannot be trusted", HttpStatus.BAD_REQUEST);
         }
-        catch (JwtException e) {
-            throw new IllegalStateException(String.format("Token %s cannot be trusted", token));
+
+        try {
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal server error");
         }
     }
 }

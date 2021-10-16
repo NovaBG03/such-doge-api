@@ -32,7 +32,7 @@ public class MemeMapperImpl implements MemeMapper {
                 .title(meme.getTitle())
                 .description(meme.getDescription())
                 .image(meme.getImage())
-                .publisher(meme.getPublisher())
+//                .publisher(meme.getPublisher())
                 .publishedOn(meme.isApproved() ? meme.getApprovedOn() : meme.getPublishedOn())
                 .build();
 

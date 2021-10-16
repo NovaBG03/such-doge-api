@@ -1,5 +1,6 @@
 package xyz.suchdoge.webapi.controller;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.suchdoge.webapi.dto.meme.MemeDataDto;
@@ -21,13 +22,13 @@ public class MemeController {
         this.memeMapper = memeMapper;
     }
 
-    @PostMapping()
-    public MemeResponseDto postMeme(@RequestParam MultipartFile image,
-                                    @RequestBody MemeDataDto memeDto,
+    @PostMapping
+    public void postMeme(@RequestParam MultipartFile image,
+                                    @ModelAttribute MemeDataDto memeDto,
                                     Principal principal) {
         final Meme meme = this.memeService
                 .createMeme(image, memeMapper.memeDataDtoToMeme(memeDto), principal.getName());
 
-        return this.memeMapper.memeToMemeResponseDto(meme);
+        // todo dont return the image cuz its not visible to all users
     }
 }
