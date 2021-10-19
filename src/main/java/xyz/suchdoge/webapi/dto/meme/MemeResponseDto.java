@@ -15,6 +15,6 @@ public class MemeResponseDto {
     private String title;
     private String description;
     private byte[] image;
-//    private DogeUser publisher; todo create user dto
+    private String publisherUsername;
     private LocalDateTime publishedOn;
 }

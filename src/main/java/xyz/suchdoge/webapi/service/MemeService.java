@@ -1,5 +1,8 @@
 package xyz.suchdoge.webapi.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,6 +14,8 @@ import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Service
 public class MemeService {
@@ -24,6 +29,19 @@ public class MemeService {
         this.memeRepository = memeRepository;
         this.dogeUserService = dogeUserService;
         this.modelValidatorService = modelValidatorService;
+    }
+
+    public long getApprovedMemeCount() {
+        return this.memeRepository.countByApprovedOnNotNull();
+    }
+
+    public Collection<Meme> getMemes(int page, int size) {
+        final PageRequest pageRequest = PageRequest
+                .of(page, size, Sort.by(Sort.Direction.DESC, "approvedOn"));
+
+        Page<Meme> memePage = this.memeRepository.findAllByApprovedOnNotNull(pageRequest);
+
+        return memePage.stream().collect(Collectors.toList());
     }
 
     public Meme getMeme(Long memeId, String principalUsername) {
@@ -50,6 +68,10 @@ public class MemeService {
         meme.setApprovedBy(null);
         meme.setApprovedOn(null);
         meme.setPublishedOn(LocalDateTime.now());
+
+        if (meme.getDescription() != null && meme.getDescription().length() == 0) {
+            meme.setDescription(null);
+        }
 
         this.modelValidatorService.validate(meme);
         return this.memeRepository.save(meme);
