@@ -31,7 +31,7 @@ public class MemeMapperImpl implements MemeMapper {
                 .id(meme.getId())
                 .title(meme.getTitle())
                 .description(meme.getDescription())
-                .image(meme.getImage())
+                .imageBytes(meme.getImage())
                 .publisherUsername(meme.getPublisher().getUsername())
                 .publishedOn(meme.isApproved() ? meme.getApprovedOn() : meme.getPublishedOn())
                 .build();

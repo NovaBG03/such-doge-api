@@ -13,7 +13,19 @@ import java.util.List;
 public interface MemeRepository extends JpaRepository<Meme, Long> {
     long countByApprovedOnNotNull();
 
-    Page<Meme> findAllByApprovedOnNotNull(Pageable pageable);
+    long countByPublisherUsername(String publisherUsername);
+
+    long countByPublisherUsernameAndApprovedOnNull(String publisherUsername);
+
+    long countByPublisherUsernameAndApprovedOnNotNull(String publisherUsername);
 
     Page<Meme> findAllByApprovedOnNull(Pageable pageable);
+
+    Page<Meme> findAllByApprovedOnNotNull(Pageable pageable);
+
+    Page<Meme> findAllByPublisherUsername(String publisherUsername, Pageable pageable);
+
+    Page<Meme> findAllByPublisherUsernameAndApprovedOnNull(String publisherUsername, Pageable pageable);
+
+    Page<Meme> findAllByPublisherUsernameAndApprovedOnNotNull(String publisherUsername, Pageable pageable);
 }

@@ -24,14 +24,12 @@ public class MemeController {
         this.memeMapper = memeMapper;
     }
 
-    @PostMapping
-    public void postMeme(@RequestParam MultipartFile image,
-                         @ModelAttribute MemeDataDto memeDto,
-                         Principal principal) {
-        this.memeService.createMeme(image, memeMapper.memeDataDtoToMeme(memeDto), principal.getName());
+    @GetMapping("/public/count")
+    public MemeCountDto getMemesCount() {
+        return new MemeCountDto(this.memeService.getApprovedMemesCount());
     }
 
-    @GetMapping
+    @GetMapping("/public")
     public MemeListDto getMemes(@RequestParam(defaultValue = "0") int page,
                                 @RequestParam(defaultValue = "5") int size) {
         Collection<Meme> memes = this.memeService.getMemes(page, size);
@@ -40,8 +38,31 @@ public class MemeController {
                 .collect(Collectors.toList()));
     }
 
-    @GetMapping("count")
-    public MemeCountDto getMemeCount() {
-        return new MemeCountDto(this.memeService.getApprovedMemeCount());
+    @GetMapping("/my/count")
+    public MemeCountDto getMyMemesCount(@RequestParam(name = "approved", defaultValue = "true") boolean isApproved,
+                                        @RequestParam(name = "pending", defaultValue = "true") boolean isPending,
+                                        Principal principal) {
+        return new MemeCountDto(this.memeService.getMyMemeCount(isApproved, isPending, principal.getName()));
+    }
+
+    @GetMapping("/my")
+    public MemeListDto getMyMemes(@RequestParam(defaultValue = "0") int page,
+                                  @RequestParam(defaultValue = "5") int size,
+                                  @RequestParam(name = "approved", defaultValue = "true") boolean isApproved,
+                                  @RequestParam(name = "pending", defaultValue = "true") boolean isPending,
+                                  Principal principal) {
+        Collection<Meme> memes = this.memeService
+                .getPrincipalMemes(page, size, isApproved, isPending, principal.getName());
+
+        return new MemeListDto(memes.stream()
+                .map(memeMapper::memeToMemeResponseDto)
+                .collect(Collectors.toList()));
+    }
+
+    @PostMapping
+    public void postMeme(@RequestParam MultipartFile image,
+                         @ModelAttribute MemeDataDto memeDto,
+                         Principal principal) {
+        this.memeService.createMeme(image, memeMapper.memeDataDtoToMeme(memeDto), principal.getName());
     }
 }

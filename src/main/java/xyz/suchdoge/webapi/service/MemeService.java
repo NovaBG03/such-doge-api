@@ -31,8 +31,24 @@ public class MemeService {
         this.modelValidatorService = modelValidatorService;
     }
 
-    public long getApprovedMemeCount() {
+    public long getApprovedMemesCount() {
         return this.memeRepository.countByApprovedOnNotNull();
+    }
+
+    public long getMyMemeCount(boolean isApproved, boolean isPending, String principalUsername) {
+        if (!isApproved && !isPending) {
+            throw new DogeHttpException("MEME_COUNT_FILTER_REQUEST_PARAMS_INVALID", HttpStatus.BAD_REQUEST);
+        }
+
+        if (isApproved && isPending) {
+            return this.memeRepository.countByPublisherUsername(principalUsername);
+        }
+
+        if (isApproved) {
+            return this.memeRepository.countByPublisherUsernameAndApprovedOnNotNull(principalUsername);
+        }
+
+        return this.memeRepository.countByPublisherUsernameAndApprovedOnNull(principalUsername);
     }
 
     public Collection<Meme> getMemes(int page, int size) {
@@ -40,6 +56,29 @@ public class MemeService {
                 .of(page, size, Sort.by(Sort.Direction.DESC, "approvedOn"));
 
         Page<Meme> memePage = this.memeRepository.findAllByApprovedOnNotNull(pageRequest);
+
+        return memePage.stream().collect(Collectors.toList());
+    }
+
+    public Collection<Meme> getPrincipalMemes(int page, int size, boolean isApproved, boolean isPending, String principalUsername) {
+        if (!isApproved && !isPending) {
+            throw new DogeHttpException("PRINCIPAL_MEMES_FILTER_REQUEST_PARAMS_INVALID", HttpStatus.BAD_REQUEST);
+        }
+
+        final PageRequest pageRequest = PageRequest.of(page, size);
+
+        Page<Meme> memePage;
+
+        if (isApproved && isPending) {
+            memePage = this.memeRepository.findAllByPublisherUsername(principalUsername,
+                    pageRequest.withSort(Sort.Direction.DESC, "approvedOn", "publishedOn"));
+        } else if (isApproved) {
+            memePage = this.memeRepository.findAllByPublisherUsernameAndApprovedOnNotNull(principalUsername,
+                    pageRequest.withSort(Sort.Direction.DESC, "approvedOn"));
+        } else {
+            memePage = this.memeRepository.findAllByPublisherUsernameAndApprovedOnNull(principalUsername,
+                    pageRequest.withSort(Sort.Direction.DESC, "publishedOn"));
+        }
 
         return memePage.stream().collect(Collectors.toList());
     }
