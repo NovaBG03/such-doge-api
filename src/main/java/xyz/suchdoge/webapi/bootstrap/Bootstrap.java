@@ -1,5 +1,6 @@
 package xyz.suchdoge.webapi.bootstrap;
 
+import com.google.common.collect.Lists;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -48,17 +49,35 @@ public class Bootstrap implements CommandLineRunner {
     }
 
     private void loadUsers() {
+        DogeRole userRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.USER);
+        DogeRole moderatorRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.MODERATOR);
+        DogeRole adminRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.ADMIN);
+
         DogeUser user = DogeUser.builder()
                 .username("ivan")
                 .email("ivan@abv.bg")
                 .encodedPassword(passwordEncoder.encode("Ivan123"))
                 .enabledAt(LocalDateTime.now())
                 .build();
-
-        DogeRole userRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.USER);
-
         user.addRole(userRole);
-
         dogeUserRepository.save(user);
+
+        DogeUser moderator = DogeUser.builder()
+                .username("moderen")
+                .email("mod@abv.bg")
+                .encodedPassword(passwordEncoder.encode("Moderen123"))
+                .enabledAt(LocalDateTime.now())
+                .build();
+        moderator.addRoles(Lists.newArrayList(userRole, moderatorRole));
+        dogeUserRepository.save(moderator);
+
+        DogeUser admin = DogeUser.builder()
+                .username("admin")
+                .email("admin@abv.bg")
+                .encodedPassword(passwordEncoder.encode("Admin123"))
+                .enabledAt(LocalDateTime.now())
+                .build();
+        admin.addRoles(Lists.newArrayList(userRole, moderatorRole, adminRole));
+        dogeUserRepository.save(admin);
     }
 }

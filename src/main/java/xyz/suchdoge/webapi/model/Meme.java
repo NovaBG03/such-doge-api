@@ -51,8 +51,7 @@ public class Meme {
     private LocalDateTime approvedOn;
 
     public boolean isApproved() {
-        return this.approvedBy != null
-                && this.approvedOn != null
+        return this.approvedOn != null
                 && this.approvedOn.isBefore(LocalDateTime.now());
     }
 }

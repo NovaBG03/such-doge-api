@@ -5,6 +5,7 @@ import org.springframework.web.multipart.MultipartFile;
 import xyz.suchdoge.webapi.dto.meme.MemeCountDto;
 import xyz.suchdoge.webapi.dto.meme.MemeDataDto;
 import xyz.suchdoge.webapi.dto.meme.MemeListDto;
+import xyz.suchdoge.webapi.dto.meme.MemeMyListDto;
 import xyz.suchdoge.webapi.mapper.meme.MemeMapper;
 import xyz.suchdoge.webapi.model.Meme;
 import xyz.suchdoge.webapi.service.MemeService;
@@ -46,16 +47,16 @@ public class MemeController {
     }
 
     @GetMapping("/my")
-    public MemeListDto getMyMemes(@RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "5") int size,
-                                  @RequestParam(name = "approved", defaultValue = "true") boolean isApproved,
-                                  @RequestParam(name = "pending", defaultValue = "true") boolean isPending,
-                                  Principal principal) {
+    public MemeMyListDto getMyMemes(@RequestParam(defaultValue = "0") int page,
+                                    @RequestParam(defaultValue = "5") int size,
+                                    @RequestParam(name = "approved", defaultValue = "true") boolean isApproved,
+                                    @RequestParam(name = "pending", defaultValue = "true") boolean isPending,
+                                    Principal principal) {
         Collection<Meme> memes = this.memeService
                 .getPrincipalMemes(page, size, isApproved, isPending, principal.getName());
 
-        return new MemeListDto(memes.stream()
-                .map(memeMapper::memeToMemeResponseDto)
+        return new MemeMyListDto(memes.stream()
+                .map(memeMapper::memeToMemeMyResponseDto)
                 .collect(Collectors.toList()));
     }
 
