@@ -1,10 +1,12 @@
 package xyz.suchdoge.webapi.service;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.model.DogeRole;
 import xyz.suchdoge.webapi.model.DogeRoleLevel;
 import xyz.suchdoge.webapi.model.DogeUser;
@@ -22,20 +24,17 @@ public class DogeUserService implements UserDetailsService {
     private final DogeRoleRepository dogeRoleRepository;
     private final DogeUserVerifier dogeUserVerifier;
     private final ModelValidatorService modelValidatorService;
-    private final ConfirmationTokenService confirmationTokenService;
 
     public DogeUserService(PasswordEncoder passwordEncoder,
                            DogeUserRepository dogeUserRepository,
                            DogeRoleRepository dogeRoleRepository,
                            DogeUserVerifier dogeUserVerifier,
-                           ModelValidatorService modelValidatorService,
-                           ConfirmationTokenService confirmationTokenService) {
+                           ModelValidatorService modelValidatorService) {
         this.passwordEncoder = passwordEncoder;
         this.dogeUserRepository = dogeUserRepository;
         this.dogeRoleRepository = dogeRoleRepository;
         this.dogeUserVerifier = dogeUserVerifier;
         this.modelValidatorService = modelValidatorService;
-        this.confirmationTokenService = confirmationTokenService;
     }
 
     @Override
@@ -65,5 +64,42 @@ public class DogeUserService implements UserDetailsService {
         user.addRole(userRole);
 
         return dogeUserRepository.save(user);
+    }
+
+    public DogeUser updateUserInfo(String email, String publicKey, String username) {
+        final DogeUser user = this.getUserByUsername(username);
+
+        if (email != null && !email.isBlank()) {
+            // todo add email verification
+            this.dogeUserVerifier.verifyEmail(email);
+            user.setEmail(email);
+        }
+
+        if (publicKey != null && !publicKey.isBlank()) {
+            user.setDogePublicKey(publicKey);
+        }
+
+        this.modelValidatorService.validate(user);
+        return dogeUserRepository.save(user);
+    }
+
+    public void changePassword(String oldPassword, String newPassword, String confirmPassword, String username) {
+        final DogeUser user = this.getUserByUsername(username);
+
+        if (!newPassword.equals(confirmPassword)) {
+            throw new DogeHttpException("PASSWORDS_DOES_NOT_MATCH", HttpStatus.BAD_REQUEST);
+        }
+
+        if (!passwordEncoder.matches(oldPassword, user.getEncodedPassword())) {
+            throw new DogeHttpException("WRONG_OLD_PASSWORD", HttpStatus.BAD_REQUEST);
+        }
+
+        if (passwordEncoder.matches(newPassword, user.getEncodedPassword())) {
+            throw new DogeHttpException("NEW_PASSWORD_AND_OLD_PASSWORD_ARE_THE_SAME", HttpStatus.BAD_REQUEST);
+        }
+
+        this.dogeUserVerifier.verifyPassword(newPassword);
+        user.setEncodedPassword(this.passwordEncoder.encode(newPassword));
+        dogeUserRepository.save(user);
     }
 }

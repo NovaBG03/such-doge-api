@@ -1,7 +1,7 @@
 package xyz.suchdoge.webapi.mapper.user;
 
 import org.springframework.stereotype.Component;
-import xyz.suchdoge.webapi.dto.user.UserInfoDto;
+import xyz.suchdoge.webapi.dto.user.UserInfoResponseDto;
 import xyz.suchdoge.webapi.model.DogeUser;
 
 import java.util.stream.Collectors;
@@ -9,12 +9,12 @@ import java.util.stream.Collectors;
 @Component
 public class UserMapperImpl implements UserMapper {
     @Override
-    public UserInfoDto dogeUserToUserInfoDto(DogeUser user) {
+    public UserInfoResponseDto dogeUserToUserInfoResponseDto(DogeUser user) {
         if (user == null) {
             return null;
         }
 
-        final UserInfoDto userInfoDto = UserInfoDto.builder()
+        final UserInfoResponseDto userInfoDto = UserInfoResponseDto.builder()
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .publicKey(user.getDogePublicKey())
