@@ -35,6 +35,10 @@ public class MemeService {
         return this.memeRepository.countByApprovedOnNotNull();
     }
 
+    public long getNotApprovedMemesCount() {
+        return this.memeRepository.countByApprovedOnNull();
+    }
+
     public long getMyMemeCount(boolean isApproved, boolean isPending, String principalUsername) {
         if (!isApproved && !isPending) {
             throw new DogeHttpException("MEME_COUNT_FILTER_REQUEST_PARAMS_INVALID", HttpStatus.BAD_REQUEST);
@@ -56,7 +60,14 @@ public class MemeService {
                 .of(page, size, Sort.by(Sort.Direction.DESC, "approvedOn"));
 
         Page<Meme> memePage = this.memeRepository.findAllByApprovedOnNotNull(pageRequest);
+        return memePage.stream().collect(Collectors.toList());
+    }
 
+    public Collection<Meme> getNotApprovedMemes(int page, int size) {
+        final PageRequest pageRequest = PageRequest
+                .of(page, size, Sort.by(Sort.Direction.DESC, "publishedOn"));
+
+        Page<Meme> memePage = this.memeRepository.findAllByApprovedOnNull(pageRequest);
         return memePage.stream().collect(Collectors.toList());
     }
 

@@ -1,5 +1,6 @@
 package xyz.suchdoge.webapi.controller;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.suchdoge.webapi.dto.meme.MemeCountDto;
@@ -57,6 +58,22 @@ public class MemeController {
 
         return new MemeMyListDto(memes.stream()
                 .map(memeMapper::memeToMemeMyResponseDto)
+                .collect(Collectors.toList()));
+    }
+
+    @GetMapping("/pending/count")
+    @Secured({"ROLE_ADMIN", "ROLE_MODERATOR"})
+    public MemeCountDto getPendingMemesCount() {
+        return new MemeCountDto(this.memeService.getNotApprovedMemesCount());
+    }
+
+    @GetMapping("/pending")
+    @Secured({"ROLE_ADMIN", "ROLE_MODERATOR"})
+    public MemeListDto getNotApprovedMemes(@RequestParam(defaultValue = "0") int page,
+                                           @RequestParam(defaultValue = "5") int size) {
+        Collection<Meme> memes = this.memeService.getNotApprovedMemes(page, size);
+        return new MemeListDto(memes.stream()
+                .map(memeMapper::memeToMemeResponseDto)
                 .collect(Collectors.toList()));
     }
 

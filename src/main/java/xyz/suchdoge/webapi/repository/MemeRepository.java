@@ -13,6 +13,8 @@ import java.util.List;
 public interface MemeRepository extends JpaRepository<Meme, Long> {
     long countByApprovedOnNotNull();
 
+    long countByApprovedOnNull();
+
     long countByPublisherUsername(String publisherUsername);
 
     long countByPublisherUsernameAndApprovedOnNull(String publisherUsername);
