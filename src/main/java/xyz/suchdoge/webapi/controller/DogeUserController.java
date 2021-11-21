@@ -33,8 +33,8 @@ public class DogeUserController {
     @PostMapping("/register")
     public void register(@RequestBody UserRegisterDto userDto) {
         this.registerService.registerUser(
-                userDto.getUsername(),
-                userDto.getEmail(),
+                userDto.getUsername().trim(),
+                userDto.getEmail().trim(),
                 userDto.getPassword()
         );
     }
@@ -47,7 +47,7 @@ public class DogeUserController {
     @PatchMapping("/me")
     public UserInfoResponseDto updatePrincipalInfo(@RequestBody UserInfoDto userInfoDto, Principal principal) {
         final DogeUser user = this.dogeUserService
-                .updateUserInfo(userInfoDto.getEmail(), userInfoDto.getPublicKey(), principal.getName());
+                .updateUserInfo(userInfoDto.getEmail().trim(), userInfoDto.getPublicKey().trim(), principal.getName());
 
         return this.userMapper.dogeUserToUserInfoResponseDto(user);
     }

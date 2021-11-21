@@ -15,8 +15,8 @@ public class MemeMapperImpl implements MemeMapper {
         }
 
         final Meme meme = Meme.builder()
-                .title(memeDto.getTitle())
-                .description(memeDto.getDescription())
+                .title(memeDto.getTitle().trim())
+                .description(memeDto.getDescription().trim())
                 .build();
 
         return meme;
