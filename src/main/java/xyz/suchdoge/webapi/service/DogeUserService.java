@@ -69,14 +69,14 @@ public class DogeUserService implements UserDetailsService {
     public DogeUser updateUserInfo(String email, String publicKey, String username) {
         final DogeUser user = this.getUserByUsername(username);
 
-        if (email != null && !email.isBlank()) {
+        if (email != null && !email.trim().isBlank()) {
             // todo add email verification
-            this.dogeUserVerifier.verifyEmail(email);
-            user.setEmail(email);
+            this.dogeUserVerifier.verifyEmail(email.trim());
+            user.setEmail(email.trim());
         }
 
-        if (publicKey != null && !publicKey.isBlank()) {
-            user.setDogePublicKey(publicKey);
+        if (publicKey != null) {
+            user.setDogePublicKey(publicKey.trim());
         }
 
         this.modelValidatorService.validate(user);

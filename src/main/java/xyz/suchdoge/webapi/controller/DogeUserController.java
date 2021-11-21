@@ -47,7 +47,7 @@ public class DogeUserController {
     @PatchMapping("/me")
     public UserInfoResponseDto updatePrincipalInfo(@RequestBody UserInfoDto userInfoDto, Principal principal) {
         final DogeUser user = this.dogeUserService
-                .updateUserInfo(userInfoDto.getEmail().trim(), userInfoDto.getPublicKey().trim(), principal.getName());
+                .updateUserInfo(userInfoDto.getEmail(), userInfoDto.getPublicKey(), principal.getName());
 
         return this.userMapper.dogeUserToUserInfoResponseDto(user);
     }
