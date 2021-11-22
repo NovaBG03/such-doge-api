@@ -15,6 +15,7 @@ import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -95,11 +96,11 @@ public class MemeService {
     }
 
     public Meme getMeme(Long memeId, String principalUsername) {
-        final Meme meme = this.memeRepository.getById(memeId);
+        final Optional<Meme> optionalMeme = this.memeRepository.getOptionalById(memeId);
 
         final DogeUser user = this.dogeUserService.getUserByUsername(principalUsername);
-        if (meme != null && (meme.isApproved() || user.isAdminOrModerator())) {
-            return meme;
+        if (optionalMeme.isPresent() && (optionalMeme.get().isApproved() || user.isAdminOrModerator())) {
+            return optionalMeme.get();
         }
 
         throw new DogeHttpException("MEME_ID_INVALID", HttpStatus.NOT_FOUND);
@@ -129,9 +130,6 @@ public class MemeService {
 
     public Meme approveMeme(Long memeId, String principalUsername) {
         final DogeUser user = this.dogeUserService.getUserByUsername(principalUsername);
-        if (!user.isAdminOrModerator()) {
-            throw new DogeHttpException("APPROVE_MEME_USER_NOT_AUTHORISED", HttpStatus.FORBIDDEN);
-        }
 
         final Meme meme = this.getMeme(memeId, principalUsername);
 

@@ -83,4 +83,10 @@ public class MemeController {
                          Principal principal) {
         this.memeService.createMeme(image, memeMapper.memeDataDtoToMeme(memeDto), principal.getName());
     }
+
+    @PostMapping("/approve/{memeId}")
+    @Secured({"ROLE_ADMIN", "ROLE_MODERATOR"})
+    public void approveMeme(@PathVariable Long memeId, Principal principal) {
+        this.memeService.approveMeme(memeId, principal.getName());
+    }
 }

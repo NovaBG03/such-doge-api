@@ -8,9 +8,12 @@ import xyz.suchdoge.webapi.model.Meme;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MemeRepository extends JpaRepository<Meme, Long> {
+    Optional<Meme> getOptionalById(Long id);
+
     long countByApprovedOnNotNull();
 
     long countByApprovedOnNull();
