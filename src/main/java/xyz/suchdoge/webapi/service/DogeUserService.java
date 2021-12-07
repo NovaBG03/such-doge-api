@@ -1,5 +1,6 @@
 package xyz.suchdoge.webapi.service;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,7 +14,7 @@ import xyz.suchdoge.webapi.model.DogeUser;
 import xyz.suchdoge.webapi.repository.DogeRoleRepository;
 import xyz.suchdoge.webapi.repository.DogeUserRepository;
 import xyz.suchdoge.webapi.security.DogeUserDetails;
-import xyz.suchdoge.webapi.service.register.ConfirmationTokenService;
+import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmationNeededEvent;
 import xyz.suchdoge.webapi.service.validator.DogeUserVerifier;
 import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 
@@ -24,17 +25,20 @@ public class DogeUserService implements UserDetailsService {
     private final DogeRoleRepository dogeRoleRepository;
     private final DogeUserVerifier dogeUserVerifier;
     private final ModelValidatorService modelValidatorService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public DogeUserService(PasswordEncoder passwordEncoder,
                            DogeUserRepository dogeUserRepository,
                            DogeRoleRepository dogeRoleRepository,
                            DogeUserVerifier dogeUserVerifier,
-                           ModelValidatorService modelValidatorService) {
+                           ModelValidatorService modelValidatorService,
+                           ApplicationEventPublisher applicationEventPublisher) {
         this.passwordEncoder = passwordEncoder;
         this.dogeUserRepository = dogeUserRepository;
         this.dogeRoleRepository = dogeRoleRepository;
         this.dogeUserVerifier = dogeUserVerifier;
         this.modelValidatorService = modelValidatorService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
@@ -60,7 +64,7 @@ public class DogeUserService implements UserDetailsService {
 
         modelValidatorService.validate(user);
 
-        DogeRole userRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.USER);
+        DogeRole userRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER);
         user.addRole(userRole);
 
         return dogeUserRepository.save(user);
@@ -69,10 +73,13 @@ public class DogeUserService implements UserDetailsService {
     public DogeUser updateUserInfo(String email, String publicKey, String username) {
         final DogeUser user = this.getUserByUsername(username);
 
-        if (email != null && !email.trim().isBlank()) {
-            // todo add email verification
+        boolean isEmailChanged = false;
+        if (email != null && !email.trim().isBlank() && !email.equals(user.getEmail())) {
             this.dogeUserVerifier.verifyEmail(email.trim());
             user.setEmail(email.trim());
+            user.getRoles().removeIf(dogeRole -> dogeRole.getLevel().equals(DogeRoleLevel.USER));
+            user.addRole(this.dogeRoleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER));
+            isEmailChanged = true;
         }
 
         if (publicKey != null) {
@@ -80,7 +87,13 @@ public class DogeUserService implements UserDetailsService {
         }
 
         this.modelValidatorService.validate(user);
-        return dogeUserRepository.save(user);
+        final DogeUser updatedUser = dogeUserRepository.save(user);
+
+        if (isEmailChanged) {
+            this.applicationEventPublisher.publishEvent(new OnEmailConfirmationNeededEvent(this, updatedUser));
+        }
+
+        return updatedUser;
     }
 
     public void changePassword(String oldPassword, String newPassword, String confirmPassword, String username) {

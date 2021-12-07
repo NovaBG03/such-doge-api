@@ -5,10 +5,10 @@ import org.springframework.context.ApplicationEvent;
 import xyz.suchdoge.webapi.model.DogeUser;
 
 @Getter
-public class OnRegistrationCompleteEvent extends ApplicationEvent {
+public class OnEmailConfirmationNeededEvent extends ApplicationEvent {
     private final DogeUser user;
 
-    public OnRegistrationCompleteEvent(Object source, DogeUser user) {
+    public OnEmailConfirmationNeededEvent(Object source, DogeUser user) {
         super(source);
         this.user = user;
     }

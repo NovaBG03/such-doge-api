@@ -8,7 +8,6 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
@@ -62,11 +61,6 @@ public class DogeUser {
     @Column()
     private String dogePublicKey;
 
-    // TODO add validation for enabledAt
-    // @FutureOrPresent
-    @Column()
-    private LocalDateTime enabledAt;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private Collection<ConfirmationToken> confirmationTokens;
 
@@ -81,8 +75,8 @@ public class DogeUser {
         this.roles.addAll(roles);
     }
 
-    public boolean isEnabled() {
-        return this.enabledAt != null && this.enabledAt.isBefore(LocalDateTime.now());
+    public boolean isConfirmed() {
+        return !this.hasAuthority(DogeRoleLevel.NOT_CONFIRMED_USER);
     }
 
     public boolean hasAuthority(DogeRoleLevel roleLevel) {

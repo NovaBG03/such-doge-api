@@ -6,20 +6,20 @@ import xyz.suchdoge.webapi.model.ConfirmationToken;
 import xyz.suchdoge.webapi.model.DogeUser;
 import xyz.suchdoge.webapi.service.EmailService;
 import xyz.suchdoge.webapi.service.register.ConfirmationTokenService;
-import xyz.suchdoge.webapi.service.register.event.OnRegistrationCompleteEvent;
+import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmationNeededEvent;
 
 @Component
-public class RegistrationListener implements ApplicationListener<OnRegistrationCompleteEvent> {
+public class EmailConfirmationNeededListener implements ApplicationListener<OnEmailConfirmationNeededEvent> {
     private final ConfirmationTokenService confirmationTokenService;
     private final EmailService emailService;
 
-    public RegistrationListener(ConfirmationTokenService confirmationTokenService, EmailService emailService) {
+    public EmailConfirmationNeededListener(ConfirmationTokenService confirmationTokenService, EmailService emailService) {
         this.confirmationTokenService = confirmationTokenService;
         this.emailService = emailService;
     }
 
     @Override
-    public void onApplicationEvent(OnRegistrationCompleteEvent onRegistrationCompleteEvent) {
+    public void onApplicationEvent(OnEmailConfirmationNeededEvent onRegistrationCompleteEvent) {
         final DogeUser user = onRegistrationCompleteEvent.getUser();
 
         ConfirmationToken confirmationToken = confirmationTokenService.createToken(user);

@@ -18,7 +18,6 @@ public class UserMapperImpl implements UserMapper {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .publicKey(user.getDogePublicKey())
-                .enabledAt(user.getEnabledAt())
                 .authorities(user.getRoles()
                         .stream()
                         .flatMap(role -> role.getLevel().getAuthorities().stream())

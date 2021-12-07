@@ -11,6 +11,9 @@ import xyz.suchdoge.webapi.repository.DogeRoleRepository;
 import xyz.suchdoge.webapi.repository.DogeUserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Component
 public class Bootstrap implements CommandLineRunner {
@@ -38,14 +41,11 @@ public class Bootstrap implements CommandLineRunner {
     }
 
     private void loadRoles() {
-        DogeRole userRole = DogeRole.builder().level(DogeRoleLevel.USER).build();
-        dogeRoleRepository.save(userRole);
+        Iterable<DogeRole> roles = Arrays.stream(DogeRoleLevel.values())
+                .map(dogeRoleLevel -> DogeRole.builder().level(dogeRoleLevel).build())
+                .collect(Collectors.toList());
 
-        DogeRole moderatorRole = DogeRole.builder().level(DogeRoleLevel.MODERATOR).build();
-        dogeRoleRepository.save(moderatorRole);
-
-        DogeRole adminRole = DogeRole.builder().level(DogeRoleLevel.ADMIN).build();
-        dogeRoleRepository.save(adminRole);
+        dogeRoleRepository.saveAll(roles);
     }
 
     private void loadUsers() {
@@ -57,7 +57,6 @@ public class Bootstrap implements CommandLineRunner {
                 .username("ivan")
                 .email("ivan@abv.bg")
                 .encodedPassword(passwordEncoder.encode("Ivan123"))
-                .enabledAt(LocalDateTime.now())
                 .build();
         user.addRole(userRole);
         dogeUserRepository.save(user);
@@ -66,7 +65,6 @@ public class Bootstrap implements CommandLineRunner {
                 .username("moderen")
                 .email("mod@abv.bg")
                 .encodedPassword(passwordEncoder.encode("Moderen123"))
-                .enabledAt(LocalDateTime.now())
                 .build();
         moderator.addRoles(Lists.newArrayList(userRole, moderatorRole));
         dogeUserRepository.save(moderator);
@@ -75,7 +73,6 @@ public class Bootstrap implements CommandLineRunner {
                 .username("admin")
                 .email("admin@abv.bg")
                 .encodedPassword(passwordEncoder.encode("Admin123"))
-                .enabledAt(LocalDateTime.now())
                 .build();
         admin.addRoles(Lists.newArrayList(userRole, moderatorRole, adminRole));
         dogeUserRepository.save(admin);

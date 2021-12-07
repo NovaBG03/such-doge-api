@@ -4,7 +4,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import xyz.suchdoge.webapi.model.DogeUser;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -14,7 +13,6 @@ public class DogeUserDetails implements UserDetails {
     public DogeUserDetails(DogeUser dogeUser) {
         this.dogeUser = dogeUser;
     }
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -51,6 +49,6 @@ public class DogeUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return this.dogeUser.isEnabled();
+        return true;
     }
 }

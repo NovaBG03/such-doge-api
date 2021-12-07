@@ -18,9 +18,9 @@ public class ConfirmationTokenValidityListener implements ApplicationListener<On
     @Override
     public void onApplicationEvent(OnConfirmTokenNoLongerValidEvent onConfirmTokenNoLongerValidEvent) {
         final ConfirmationToken confirmationToken = onConfirmTokenNoLongerValidEvent.getConfirmationToken();
-        final DogeUser user = this.confirmationTokenService.getOwningUser(confirmationToken);
+        final DogeUser user = confirmationToken.getUser();
 
-        if (user.isEnabled()) {
+        if (user.isConfirmed()) {
             this.confirmationTokenService.deleteAllTokens(user);
             return;
         }

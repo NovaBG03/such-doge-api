@@ -31,11 +31,15 @@ public class ConfirmationToken {
     @NotNull(message = "CONFIRMATION_TOKEN_EXPIRATION_TIME_NULL")
     private Duration expirationTime;
 
+    @NotNull(message = "CONFIRMATION_TOKEN_ORIGIN_EMAIL_NULL")
+    private String originEmail;
+
     @ManyToOne()
     @JoinColumn(name = "user_id", nullable = false)
     private DogeUser user;
 
     public boolean isExpired() {
-        return createdAt.plus(expirationTime).isBefore(LocalDateTime.now());
+        return createdAt.plus(expirationTime).isBefore(LocalDateTime.now())
+                || !user.getEmail().equals(this.originEmail);
     }
 }

@@ -18,7 +18,7 @@ public class DogeRole {
     private Integer id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "level", nullable = false, length = 15, unique = true)
+    @Column(name = "level", nullable = false, length = 25, unique = true)
     private DogeRoleLevel level;
 
     @Override
