@@ -7,7 +7,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
-import xyz.suchdoge.webapi.model.ConfirmationToken;
+import xyz.suchdoge.webapi.model.token.EmailConfirmationToken;
 import xyz.suchdoge.webapi.model.DogeUser;
 import xyz.suchdoge.webapi.service.register.RegisterConfig;
 import xyz.suchdoge.webapi.service.validator.EmailVerifier;
@@ -27,7 +27,7 @@ public class EmailService {
         this.registerConfig = registerConfig;
     }
 
-    public void sendToken(DogeUser user, ConfirmationToken confirmationToken) {
+    public void sendToken(DogeUser user, EmailConfirmationToken confirmationToken) {
         final String registerUrl = registerConfig.tokenActivationWebUrl + "/" +
                 confirmationToken.getToken().toString();
 

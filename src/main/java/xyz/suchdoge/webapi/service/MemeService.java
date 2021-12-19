@@ -107,15 +107,19 @@ public class MemeService {
     }
 
     public Meme createMeme(MultipartFile image, Meme meme, String principalUsername) {
+        final DogeUser publisher = this.dogeUserService.getUserByUsername(principalUsername);
+
+        if (!publisher.isConfirmed()) {
+            throw new DogeHttpException("USER_NOT_CONFIRMED", HttpStatus.METHOD_NOT_ALLOWED);
+        }
+
         try {
             meme.setImage(image.getBytes());
         } catch (IOException e) {
             throw new DogeHttpException("CAN_NOT_READ_IMAGE_BYTES", HttpStatus.BAD_REQUEST);
         }
 
-        final DogeUser publisher = this.dogeUserService.getUserByUsername(principalUsername);
         meme.setPublisher(publisher);
-
         meme.setApprovedBy(null);
         meme.setApprovedOn(null);
         meme.setPublishedOn(LocalDateTime.now());
@@ -130,6 +134,9 @@ public class MemeService {
 
     public Meme approveMeme(Long memeId, String principalUsername) {
         final DogeUser user = this.dogeUserService.getUserByUsername(principalUsername);
+        if (!user.isConfirmed()) {
+            throw new DogeHttpException("USER_NOT_CONFIRMED", HttpStatus.METHOD_NOT_ALLOWED);
+        }
 
         final Meme meme = this.getMeme(memeId, principalUsername);
 

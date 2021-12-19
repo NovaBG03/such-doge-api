@@ -12,8 +12,13 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class JwtConfig {
     private String secretKey;
+
     private String tokenPrefix;
-    private Integer tokenExpirationDays;
+    private Long tokenExpirationSeconds;
+
+    private String refreshTokenPrefix;
+    private Long refreshTokenExpirationDays;
+    private String refreshTokenHeader;
 
     public String getAuthorizationHeader() {
         return HttpHeaders.AUTHORIZATION;
