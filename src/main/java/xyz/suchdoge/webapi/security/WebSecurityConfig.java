@@ -11,13 +11,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import xyz.suchdoge.webapi.security.jwt.JwtConfig;
 import xyz.suchdoge.webapi.security.jwt.JwtTokenVerifier;
 import xyz.suchdoge.webapi.security.jwt.JwtUserPasswordAuthenticationFilter;
 import xyz.suchdoge.webapi.service.jwt.JwtService;
 import xyz.suchdoge.webapi.service.jwt.RefreshTokenService;
 
-import javax.crypto.SecretKey;
 
 @Configuration
 @EnableWebSecurity
@@ -27,21 +25,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final UserDetailsService userDetailsService;
-    private final SecretKey secretKey;
-    private final JwtConfig jwtConfig;
 
     public WebSecurityConfig(PasswordEncoder passwordEncoder,
                              JwtService jwtService,
                              RefreshTokenService refreshTokenService,
-                             UserDetailsService userDetailsService,
-                             SecretKey secretKey,
-                             JwtConfig jwtConfig) {
+                             UserDetailsService userDetailsService) {
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
         this.userDetailsService = userDetailsService;
-        this.secretKey = secretKey;
-        this.jwtConfig = jwtConfig;
     }
 
 
@@ -58,7 +50,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         authenticationManager(), jwtService, refreshTokenService))
                 .addFilterAfter(new JwtTokenVerifier(jwtService), JwtUserPasswordAuthenticationFilter.class)
                 .authorizeRequests()
-                .antMatchers("/login", "/register", "/activate/*", "/meme/public/**").permitAll()
+                .antMatchers("/login",
+                        "/register",
+                        "/activate/*",
+                        "/refresh/*",
+                        "/meme/public/**").permitAll()
                 .anyRequest().authenticated();
     }
 

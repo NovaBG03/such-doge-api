@@ -16,4 +16,9 @@ public class RefreshToken extends Token {
     public RefreshToken(UUID token, LocalDateTime createdAt, Duration expirationTime, DogeUser user) {
         super(token, createdAt, expirationTime, user);
     }
+
+    public boolean isHalfwayExpired() {
+        return getCreatedAt().plusSeconds(getExpirationTime().getSeconds() / 2).isBefore(LocalDateTime.now())
+                && !isExpired();
+    }
 }

@@ -7,12 +7,17 @@ import io.jsonwebtoken.Jwts;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+import xyz.suchdoge.webapi.security.DogeUserDetails;
 import xyz.suchdoge.webapi.security.jwt.JwtConfig;
 
 import javax.crypto.SecretKey;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.security.Principal;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -22,10 +27,12 @@ import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
+    private final UserDetailsService userDetailsService;
     private final SecretKey secretKey;
     private final JwtConfig jwtConfig;
 
-    public JwtService(SecretKey secretKey, JwtConfig jwtConfig) {
+    public JwtService(UserDetailsService userDetailsService, SecretKey secretKey, JwtConfig jwtConfig) {
+        this.userDetailsService = userDetailsService;
         this.secretKey = secretKey;
         this.jwtConfig = jwtConfig;
     }
@@ -63,19 +70,24 @@ public class JwtService {
         );
     }
 
-    public String createJwt(Authentication authResult) {
+    public String createJwt(String username) {
+        final UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+
         return Jwts.builder()
-                .setSubject(authResult.getName())
-                .claim("authorities", authResult.getAuthorities())
+                .setSubject(userDetails.getUsername())
+                .claim("authorities", userDetails.getAuthorities())
                 .setIssuedAt(new Date())
                 .setExpiration(Date.from(Instant.now().plusSeconds(jwtConfig.getTokenExpirationSeconds())))
                 .signWith(secretKey)
                 .compact();
     }
 
-    public void setAuthorizationResponseHeader(HttpServletResponse response, Authentication authentication) {
-        final String jwt = this.createJwt(authentication);
+    public void createNewAuthorizationResponseHeader(HttpServletResponse response, String principalName) {
+        final String jwt = this.createJwt(principalName);
+        this.setAuthorizationResponseHeader(response, jwt);
+    }
 
+    public void setAuthorizationResponseHeader(HttpServletResponse response, String jwt) {
         // todo add cors header
         response.addHeader("Access-Control-Expose-Headers", jwtConfig.getAuthorizationHeader());
         response.setHeader(jwtConfig.getAuthorizationHeader(), jwtConfig.getTokenPrefix() + jwt);

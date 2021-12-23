@@ -8,17 +8,24 @@ import xyz.suchdoge.webapi.dto.user.UserRegisterDto;
 import xyz.suchdoge.webapi.mapper.user.UserMapper;
 import xyz.suchdoge.webapi.model.DogeUser;
 import xyz.suchdoge.webapi.service.DogeUserService;
+import xyz.suchdoge.webapi.service.jwt.RefreshTokenService;
 import xyz.suchdoge.webapi.service.register.RegisterService;
 
+import javax.servlet.http.HttpServletResponse;
 import java.security.Principal;
 
 @RestController
 public class DogeUserController {
+    private final RefreshTokenService refreshTokenService;
     private final RegisterService registerService;
     private final DogeUserService dogeUserService;
     private final UserMapper userMapper;
 
-    public DogeUserController(RegisterService registerService, DogeUserService dogeUserService, UserMapper userMapper) {
+    public DogeUserController(RefreshTokenService refreshTokenService,
+                              RegisterService registerService,
+                              DogeUserService dogeUserService,
+                              UserMapper userMapper) {
+        this.refreshTokenService = refreshTokenService;
         this.registerService = registerService;
         this.dogeUserService = dogeUserService;
         this.userMapper = userMapper;
@@ -42,6 +49,11 @@ public class DogeUserController {
     @PostMapping("/activate/{token}")
     public void activate(@PathVariable String token) {
         this.registerService.activateUser(token);
+    }
+
+    @PostMapping("/refresh/{token}")
+    public void refresh(@PathVariable String token, HttpServletResponse response) {
+        this.refreshTokenService.refreshAccess(token, response);
     }
 
     @PatchMapping("/me")

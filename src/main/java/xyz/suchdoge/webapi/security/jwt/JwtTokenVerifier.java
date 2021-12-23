@@ -35,7 +35,7 @@ public class JwtTokenVerifier extends OncePerRequestFilter {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (JwtException e) {
-            throw new DogeHttpException("Auth token cannot be trusted", HttpStatus.BAD_REQUEST);
+            throw new DogeHttpException("AUTH_TOKEN_INVALID_OR_EXPIRED", HttpStatus.BAD_REQUEST);
         }
 
         try {

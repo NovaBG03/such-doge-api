@@ -6,11 +6,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import xyz.suchdoge.webapi.model.token.RefreshToken;
 import xyz.suchdoge.webapi.service.jwt.JwtService;
 import xyz.suchdoge.webapi.service.jwt.RefreshTokenService;
 
-import javax.crypto.SecretKey;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -56,9 +54,8 @@ public class JwtUserPasswordAuthenticationFilter extends UsernamePasswordAuthent
                                             HttpServletResponse response,
                                             FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException {
-
-        jwtService.setAuthorizationResponseHeader(response, authResult);
-        refreshTokenService.setRefreshTokenHeader(response, authResult);
+        jwtService.createNewAuthorizationResponseHeader(response, authResult.getName());
+        refreshTokenService.createNewRefreshTokenHeader(response, authResult.getName());
     }
 
 
