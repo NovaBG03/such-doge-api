@@ -1,22 +1,22 @@
 package xyz.suchdoge.webapi.service.jwt;
 
-import org.apache.coyote.Response;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.model.DogeUser;
 import xyz.suchdoge.webapi.model.token.RefreshToken;
 import xyz.suchdoge.webapi.repository.RefreshTokenRepository;
-import xyz.suchdoge.webapi.security.jwt.JwtConfig;
 import xyz.suchdoge.webapi.service.DogeUserService;
+import xyz.suchdoge.webapi.service.jwt.event.OnTooMuchRefreshTokensForUser;
 import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 
 import javax.servlet.http.HttpServletResponse;
-import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class RefreshTokenService {
@@ -25,21 +25,28 @@ public class RefreshTokenService {
     private final JwtConfig jwtConfig;
     private final JwtService jwtService;
     private final ModelValidatorService modelValidatorService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public RefreshTokenService(RefreshTokenRepository refreshTokenRepository,
                                DogeUserService dogeUserService,
                                JwtConfig jwtConfig,
                                JwtService jwtService,
-                               ModelValidatorService modelValidatorService) {
+                               ModelValidatorService modelValidatorService,
+                               ApplicationEventPublisher eventPublisher) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.dogeUserService = dogeUserService;
         this.jwtConfig = jwtConfig;
         this.jwtService = jwtService;
         this.modelValidatorService = modelValidatorService;
+        this.eventPublisher = eventPublisher;
     }
 
     public RefreshToken createToken(String username) {
         final DogeUser user = this.dogeUserService.getUserByUsername(username);
+
+        if (refreshTokenRepository.countAllByUserUsername(username) >= jwtConfig.getMaxRefreshTokensPerUser()) {
+            eventPublisher.publishEvent(new OnTooMuchRefreshTokensForUser(this, user));
+        }
 
         RefreshToken token = RefreshToken.builder()
                 .createdAt(LocalDateTime.now())
@@ -84,4 +91,24 @@ public class RefreshTokenService {
             this.setRefreshTokenHeader(response, refreshToken);
         }
     }
+
+    public void cleanTokens(DogeUser user) {
+        Collection<RefreshToken> tokensToDelete = this.refreshTokenRepository
+                .getAllByUserUsername(user.getUsername())
+                .stream()
+                .sorted((o1, o2) -> {
+                    if (o1.isExpired() == o2.isExpired()) {
+                        return o2.getCreatedAt().compareTo(o1.getCreatedAt());
+                    }
+                    if (o1.isExpired()) {
+                        return 1;
+                    }
+                    return -1;
+                })
+                .skip(this.jwtConfig.getMaxRefreshTokensPerUser() - 1)
+                .collect(Collectors.toList());
+
+        this.refreshTokenRepository.deleteAll(tokensToDelete);
+    }
 }
+

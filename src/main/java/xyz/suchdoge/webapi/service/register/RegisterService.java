@@ -21,24 +21,24 @@ public class RegisterService {
     private final DogeUserRepository dogeUserRepository;
     private final DogeUserService dogeUserService;
     private final EmailConfirmationTokenService emailConfirmationTokenService;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     public RegisterService(DogeRoleRepository dogeRoleRepository,
                            DogeUserRepository dogeUserRepository,
                            DogeUserService dogeUserService,
                            EmailConfirmationTokenService emailConfirmationTokenService,
-                           ApplicationEventPublisher applicationEventPublisher) {
+                           ApplicationEventPublisher eventPublisher) {
         this.dogeRoleRepository = dogeRoleRepository;
         this.dogeUserRepository = dogeUserRepository;
         this.dogeUserService = dogeUserService;
         this.emailConfirmationTokenService = emailConfirmationTokenService;
-        this.applicationEventPublisher = applicationEventPublisher;
+        this.eventPublisher = eventPublisher;
     }
 
     public DogeUser registerUser(String username, String email, String password) {
         DogeUser user = dogeUserService.createUser(username, email, password);
 
-        this.applicationEventPublisher.publishEvent(new OnEmailConfirmationNeededEvent(this, user));
+        this.eventPublisher.publishEvent(new OnEmailConfirmationNeededEvent(this, user));
 
         return user;
     }
@@ -48,7 +48,7 @@ public class RegisterService {
                 .getConfirmationToken(UUID.fromString(token));
 
         if (confirmationToken.isExpired()) {
-            this.applicationEventPublisher.publishEvent(
+            this.eventPublisher.publishEvent(
                     new OnEmailConfirmTokenNoLongerValidEvent(this, confirmationToken));
 
             throw new DogeHttpException("CONFIRM_TOKEN_EXPIRED", HttpStatus.NOT_ACCEPTABLE);
@@ -56,7 +56,7 @@ public class RegisterService {
 
         DogeUser user = confirmationToken.getUser();
         if (user.isConfirmed()) {
-            this.applicationEventPublisher.publishEvent(
+            this.eventPublisher.publishEvent(
                     new OnEmailConfirmTokenNoLongerValidEvent(this, confirmationToken));
 
             throw new DogeHttpException("DOGE_USER_ALREADY_ENABLED", HttpStatus.METHOD_NOT_ALLOWED);
@@ -66,7 +66,7 @@ public class RegisterService {
         user.getRoles().add(this.dogeRoleRepository.getByLevel(DogeRoleLevel.USER));
         final DogeUser enabledUser = this.dogeUserRepository.save(user);
 
-        this.applicationEventPublisher
+        this.eventPublisher
                 .publishEvent(new OnEmailConfirmTokenNoLongerValidEvent(this, confirmationToken));
 
         return enabledUser;

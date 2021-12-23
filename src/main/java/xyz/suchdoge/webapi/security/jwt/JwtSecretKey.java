@@ -3,6 +3,7 @@ package xyz.suchdoge.webapi.security.jwt;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import xyz.suchdoge.webapi.service.jwt.JwtConfig;
 
 import javax.crypto.SecretKey;
 

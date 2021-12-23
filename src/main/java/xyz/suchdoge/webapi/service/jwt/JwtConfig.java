@@ -1,4 +1,4 @@
-package xyz.suchdoge.webapi.security.jwt;
+package xyz.suchdoge.webapi.service.jwt;
 
 import com.google.common.net.HttpHeaders;
 import lombok.Getter;
@@ -19,6 +19,8 @@ public class JwtConfig {
     private String refreshTokenPrefix;
     private Long refreshTokenExpirationSeconds;
     private String refreshTokenHeader;
+
+    private Integer maxRefreshTokensPerUser;
 
     public String getAuthorizationHeader() {
         return HttpHeaders.AUTHORIZATION;
