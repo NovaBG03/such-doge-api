@@ -8,6 +8,7 @@ import xyz.suchdoge.webapi.model.DogeUser;
 import xyz.suchdoge.webapi.model.token.RefreshToken;
 import xyz.suchdoge.webapi.repository.RefreshTokenRepository;
 import xyz.suchdoge.webapi.service.DogeUserService;
+import xyz.suchdoge.webapi.service.HashingService;
 import xyz.suchdoge.webapi.service.jwt.event.OnTooMuchRefreshTokensForUser;
 import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final DogeUserService dogeUserService;
+    private final HashingService hashingService;
     private final JwtConfig jwtConfig;
     private final JwtService jwtService;
     private final ModelValidatorService modelValidatorService;
@@ -29,54 +31,61 @@ public class RefreshTokenService {
 
     public RefreshTokenService(RefreshTokenRepository refreshTokenRepository,
                                DogeUserService dogeUserService,
+                               HashingService hashingService,
                                JwtConfig jwtConfig,
                                JwtService jwtService,
                                ModelValidatorService modelValidatorService,
                                ApplicationEventPublisher eventPublisher) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.dogeUserService = dogeUserService;
+        this.hashingService = hashingService;
         this.jwtConfig = jwtConfig;
         this.jwtService = jwtService;
         this.modelValidatorService = modelValidatorService;
         this.eventPublisher = eventPublisher;
     }
 
-    public RefreshToken createToken(String username) {
+    public String createToken(String username) {
         final DogeUser user = this.dogeUserService.getUserByUsername(username);
 
         if (refreshTokenRepository.countAllByUserUsername(username) >= jwtConfig.getMaxRefreshTokensPerUser()) {
             eventPublisher.publishEvent(new OnTooMuchRefreshTokensForUser(this, user));
         }
 
-        RefreshToken token = RefreshToken.builder()
+        final String token = UUID.randomUUID().toString();
+
+        RefreshToken refreshToken = RefreshToken.builder()
+                .hashedToken(hashingService.hashString(token))
                 .createdAt(LocalDateTime.now())
                 .expirationTime(Duration.ofSeconds(jwtConfig.getRefreshTokenExpirationSeconds()))
                 .user(user)
                 .build();
 
-        modelValidatorService.validate(token);
-        return this.refreshTokenRepository.save(token);
+        this.modelValidatorService.validate(refreshToken);
+        this.refreshTokenRepository.save(refreshToken);
+
+        return token;
     }
 
     public void createNewRefreshTokenHeader(HttpServletResponse response, String principalName) {
-        RefreshToken refreshToken = this.createToken(principalName);
-        this.setRefreshTokenHeader(response, refreshToken);
+        String token = this.createToken(principalName);
+        this.setRefreshTokenHeader(response, token);
     }
 
-    public void setRefreshTokenHeader(HttpServletResponse response, RefreshToken refreshToken) {
-        final String headerValue = jwtConfig.getRefreshTokenPrefix() + refreshToken.getToken().toString();
+    public void setRefreshTokenHeader(HttpServletResponse response, String token) {
+        final String headerValue = jwtConfig.getRefreshTokenPrefix() + token;
 
         response.addHeader("Access-Control-Expose-Headers", jwtConfig.getRefreshTokenHeader());
         response.setHeader(jwtConfig.getRefreshTokenHeader(), headerValue);
     }
 
-    public RefreshToken getRefreshToken(UUID token) {
-        return this.refreshTokenRepository.getByToken(token)
+    public RefreshToken getRefreshToken(String token) {
+        return this.refreshTokenRepository.getByHashedToken(hashingService.hashString(token))
                 .orElseThrow(() -> new DogeHttpException("REFRESH_TOKEN_INVALID", HttpStatus.NOT_FOUND));
     }
 
     public void refreshAccess(String token, HttpServletResponse response) {
-        RefreshToken refreshToken = this.getRefreshToken(UUID.fromString(token));
+        RefreshToken refreshToken = this.getRefreshToken(token);
 
         if (refreshToken.isExpired()) {
             throw new DogeHttpException("REFRESH_TOKEN_INVALID", HttpStatus.BAD_REQUEST);
@@ -88,7 +97,7 @@ public class RefreshTokenService {
         if (refreshToken.isHalfwayExpired()) {
             this.createNewRefreshTokenHeader(response, username);
         } else {
-            this.setRefreshTokenHeader(response, refreshToken);
+            this.setRefreshTokenHeader(response, token);
         }
     }
 

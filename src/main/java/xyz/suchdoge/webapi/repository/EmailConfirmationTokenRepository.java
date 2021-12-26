@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface EmailConfirmationTokenRepository extends JpaRepository<EmailConfirmationToken, UUID> {
-    Optional<EmailConfirmationToken> getByToken(UUID token);
+    Optional<EmailConfirmationToken> getByHashedToken(String hashedToken);
 }

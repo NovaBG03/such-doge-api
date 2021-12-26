@@ -13,8 +13,6 @@ import xyz.suchdoge.webapi.service.DogeUserService;
 import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmTokenNoLongerValidEvent;
 import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmationNeededEvent;
 
-import java.util.UUID;
-
 @Service
 public class RegisterService {
     private final DogeRoleRepository dogeRoleRepository;
@@ -45,7 +43,7 @@ public class RegisterService {
 
     public DogeUser activateUser(String token) {
         final EmailConfirmationToken confirmationToken = emailConfirmationTokenService
-                .getConfirmationToken(UUID.fromString(token));
+                .getConfirmationToken(token);
 
         if (confirmationToken.isExpired()) {
             this.eventPublisher.publishEvent(

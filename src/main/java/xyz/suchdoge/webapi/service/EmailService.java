@@ -27,12 +27,11 @@ public class EmailService {
         this.registerConfig = registerConfig;
     }
 
-    public void sendToken(DogeUser user, EmailConfirmationToken confirmationToken) {
-        final String registerUrl = registerConfig.tokenActivationWebUrl + "/" +
-                confirmationToken.getToken().toString();
-
+    public void sendToken(DogeUser user, String confirmationToken) {
+        final String registerUrl = registerConfig.tokenActivationWebUrl + "/" + confirmationToken;
         final String subject = "Activate your SuchDoge account";
         final String content = "To activate your SuchDoge account click here: " + registerUrl;
+
         this.sendEmail(user.getEmail(), subject, content);
     }
 

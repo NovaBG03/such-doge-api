@@ -13,7 +13,8 @@ public class EmailConfirmationNeededListener implements ApplicationListener<OnEm
     private final EmailConfirmationTokenService confirmationTokenService;
     private final EmailService emailService;
 
-    public EmailConfirmationNeededListener(EmailConfirmationTokenService confirmationTokenService, EmailService emailService) {
+    public EmailConfirmationNeededListener(EmailConfirmationTokenService confirmationTokenService,
+                                           EmailService emailService) {
         this.confirmationTokenService = confirmationTokenService;
         this.emailService = emailService;
     }
@@ -22,7 +23,7 @@ public class EmailConfirmationNeededListener implements ApplicationListener<OnEm
     public void onApplicationEvent(OnEmailConfirmationNeededEvent onRegistrationCompleteEvent) {
         final DogeUser user = onRegistrationCompleteEvent.getUser();
 
-        EmailConfirmationToken confirmationToken = confirmationTokenService.createToken(user);
+        String confirmationToken = confirmationTokenService.createToken(user);
 
         emailService.sendToken(user, confirmationToken);
     }

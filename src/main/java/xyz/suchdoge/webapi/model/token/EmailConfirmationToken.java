@@ -22,12 +22,13 @@ public class EmailConfirmationToken extends Token {
     private String originEmail;
 
     @Builder
-    public EmailConfirmationToken(UUID token,
+    public EmailConfirmationToken(Long id,
+                                  String hashedToken,
                                   LocalDateTime createdAt,
                                   Duration expirationTime,
                                   DogeUser user,
                                   String originEmail) {
-        super(token, createdAt, expirationTime, user);
+        super(id, hashedToken, createdAt, expirationTime, user);
         this.originEmail = originEmail;
     }
 

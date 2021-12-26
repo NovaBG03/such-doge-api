@@ -13,8 +13,8 @@ import java.util.UUID;
 @NoArgsConstructor
 public class RefreshToken extends Token {
     @Builder
-    public RefreshToken(UUID token, LocalDateTime createdAt, Duration expirationTime, DogeUser user) {
-        super(token, createdAt, expirationTime, user);
+    public RefreshToken(Long id, String hashedToken, LocalDateTime createdAt, Duration expirationTime, DogeUser user) {
+        super(id, hashedToken, createdAt, expirationTime, user);
     }
 
     public boolean isHalfwayExpired() {

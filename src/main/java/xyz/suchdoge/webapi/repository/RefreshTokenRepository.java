@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Repository
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID> {
-    Optional<RefreshToken> getByToken(UUID token);
+    Optional<RefreshToken> getByHashedToken(String hashedToken);
 
     int countAllByUserUsername(String username);
 
