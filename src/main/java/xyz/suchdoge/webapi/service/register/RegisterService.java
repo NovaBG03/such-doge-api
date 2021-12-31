@@ -10,6 +10,7 @@ import xyz.suchdoge.webapi.model.DogeUser;
 import xyz.suchdoge.webapi.repository.DogeRoleRepository;
 import xyz.suchdoge.webapi.repository.DogeUserRepository;
 import xyz.suchdoge.webapi.service.DogeUserService;
+import xyz.suchdoge.webapi.service.EmailService;
 import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmTokenNoLongerValidEvent;
 import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmationNeededEvent;
 
@@ -19,18 +20,23 @@ public class RegisterService {
     private final DogeUserRepository dogeUserRepository;
     private final DogeUserService dogeUserService;
     private final EmailConfirmationTokenService emailConfirmationTokenService;
+    private final EmailService emailService;
     private final ApplicationEventPublisher eventPublisher;
+    private final RegisterConfig registerConfig;
 
     public RegisterService(DogeRoleRepository dogeRoleRepository,
                            DogeUserRepository dogeUserRepository,
                            DogeUserService dogeUserService,
                            EmailConfirmationTokenService emailConfirmationTokenService,
-                           ApplicationEventPublisher eventPublisher) {
+                           EmailService emailService, ApplicationEventPublisher eventPublisher,
+                           RegisterConfig registerConfig) {
         this.dogeRoleRepository = dogeRoleRepository;
         this.dogeUserRepository = dogeUserRepository;
         this.dogeUserService = dogeUserService;
         this.emailConfirmationTokenService = emailConfirmationTokenService;
+        this.emailService = emailService;
         this.eventPublisher = eventPublisher;
+        this.registerConfig = registerConfig;
     }
 
     public DogeUser registerUser(String username, String email, String password) {
@@ -39,6 +45,21 @@ public class RegisterService {
         this.eventPublisher.publishEvent(new OnEmailConfirmationNeededEvent(this, user));
 
         return user;
+    }
+
+    public void sendActivationLink(DogeUser user) {
+        String confirmationToken = emailConfirmationTokenService.createToken(user);
+        this.emailService.sendToken(user, confirmationToken);
+    }
+
+    public long resentActivationLink(String username) {
+        final DogeUser user = this.dogeUserService.getUserByUsername(username);
+
+        if (this.emailConfirmationTokenService.canCreateNewToken(user)) {
+            this.sendActivationLink(user);
+        }
+
+        return registerConfig.tokenMinimalDelaySeconds;
     }
 
     public DogeUser activateUser(String token) {

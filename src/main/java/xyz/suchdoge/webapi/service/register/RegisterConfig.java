@@ -12,4 +12,5 @@ import org.springframework.context.annotation.Configuration;
 public class RegisterConfig {
     public String tokenActivationWebUrl;
     private Integer tokenExpirationDays;
+    public long tokenMinimalDelaySeconds;
 }

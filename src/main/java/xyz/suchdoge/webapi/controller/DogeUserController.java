@@ -1,10 +1,7 @@
 package xyz.suchdoge.webapi.controller;
 
 import org.springframework.web.bind.annotation.*;
-import xyz.suchdoge.webapi.dto.user.PasswordDto;
-import xyz.suchdoge.webapi.dto.user.UserInfoDto;
-import xyz.suchdoge.webapi.dto.user.UserInfoResponseDto;
-import xyz.suchdoge.webapi.dto.user.UserRegisterDto;
+import xyz.suchdoge.webapi.dto.user.*;
 import xyz.suchdoge.webapi.mapper.user.UserMapper;
 import xyz.suchdoge.webapi.model.DogeUser;
 import xyz.suchdoge.webapi.service.DogeUserService;
@@ -44,6 +41,12 @@ public class DogeUserController {
                 userDto.getEmail().trim(),
                 userDto.getPassword()
         );
+    }
+
+    @PostMapping("/requestActivation")
+    public RequestActivationResponseDto requestActivation(Principal principal) {
+        return new RequestActivationResponseDto(
+                this.registerService.resentActivationLink(principal.getName()));
     }
 
     @PostMapping("/activate/{token}")

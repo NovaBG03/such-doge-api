@@ -6,7 +6,6 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.Length;
 import xyz.suchdoge.webapi.model.token.EmailConfirmationToken;
-import xyz.suchdoge.webapi.model.token.RefreshToken;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -64,7 +63,7 @@ public class DogeUser {
     private String dogePublicKey;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private Collection<EmailConfirmationToken> confirmationTokens;
+    private Collection<EmailConfirmationToken> emailConfirmationTokens;
 
     @OneToMany(mappedBy = "publisher")
     private Collection<Meme> memes;
