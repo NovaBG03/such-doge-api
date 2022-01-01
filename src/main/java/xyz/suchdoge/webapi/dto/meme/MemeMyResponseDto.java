@@ -13,7 +13,7 @@ public class MemeMyResponseDto {
     private Long id;
     private String title;
     private String description;
-    private byte[] imageBytes;
+    private String imageKey;
     private String publisherUsername;
     private LocalDateTime publishedOn;
     private boolean isApproved;

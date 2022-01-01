@@ -5,7 +5,6 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Null;
 import java.time.LocalDateTime;
 
 @Entity
@@ -36,7 +35,7 @@ public class Meme {
 
     @Lob
     @NotNull(message = "MEME_IMAGE_NULL")
-    private byte[] image;
+    private String imageKey;
 
     @ManyToOne
     @JoinColumn(name = "publisher_id", nullable = false)

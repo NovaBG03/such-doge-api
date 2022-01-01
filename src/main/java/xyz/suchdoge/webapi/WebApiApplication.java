@@ -3,7 +3,7 @@ package xyz.suchdoge.webapi;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication()
 public class WebApiApplication {
 
 	public static void main(String[] args) {

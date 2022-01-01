@@ -10,25 +10,30 @@ import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.model.DogeUser;
 import xyz.suchdoge.webapi.model.Meme;
 import xyz.suchdoge.webapi.repository.MemeRepository;
+import xyz.suchdoge.webapi.service.storage.CloudStorageService;
 import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class MemeService {
     private final MemeRepository memeRepository;
     private final DogeUserService dogeUserService;
+    private final CloudStorageService cloudStorageService;
     private final ModelValidatorService modelValidatorService;
 
     public MemeService(MemeRepository memeRepository,
                        DogeUserService dogeUserService,
+                       CloudStorageService cloudStorageService,
                        ModelValidatorService modelValidatorService) {
         this.memeRepository = memeRepository;
         this.dogeUserService = dogeUserService;
+        this.cloudStorageService = cloudStorageService;
         this.modelValidatorService = modelValidatorService;
     }
 
@@ -114,9 +119,13 @@ public class MemeService {
         }
 
         try {
-            meme.setImage(image.getBytes());
+            final String imageId = UUID.randomUUID() + ".png";
+            this.cloudStorageService.upload(image.getBytes(), imageId);
+            meme.setImageKey(imageId);
         } catch (IOException e) {
             throw new DogeHttpException("CAN_NOT_READ_IMAGE_BYTES", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            throw new DogeHttpException("CAN_NOT_SAVE_IMAGE", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         meme.setPublisher(publisher);

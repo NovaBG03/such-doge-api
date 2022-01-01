@@ -14,7 +14,7 @@ public class MemeResponseDto {
     private Long id;
     private String title;
     private String description;
-    private byte[] imageBytes;
+    private String imageKey;
     private String publisherUsername;
     private LocalDateTime publishedOn;
 }
