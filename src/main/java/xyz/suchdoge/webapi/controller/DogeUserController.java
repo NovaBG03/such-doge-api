@@ -1,6 +1,7 @@
 package xyz.suchdoge.webapi.controller;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import xyz.suchdoge.webapi.dto.user.*;
 import xyz.suchdoge.webapi.mapper.user.UserMapper;
 import xyz.suchdoge.webapi.model.DogeUser;
@@ -73,5 +74,10 @@ public class DogeUserController {
                 passwordDto.getNewPassword(),
                 passwordDto.getConfirmPassword(),
                 principal.getName());
+    }
+
+    @PostMapping("me/image")
+    public void updateProfilePic(@RequestParam MultipartFile image, Principal principal) {
+        this.dogeUserService.setProfileImage(image, principal.getName());
     }
 }

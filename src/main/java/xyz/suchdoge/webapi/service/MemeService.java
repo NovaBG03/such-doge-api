@@ -77,7 +77,7 @@ public class MemeService {
         return memePage.stream().collect(Collectors.toList());
     }
 
-    public Collection<Meme> getPrincipalMemes(int page, int size, boolean isApproved, boolean isPending, String principalUsername) {
+    public Collection<Meme> getPrincipalMemes(int page, int size, boolean isApproved, boolean isPending, String username) {
         if (!isApproved && !isPending) {
             throw new DogeHttpException("PRINCIPAL_MEMES_FILTER_REQUEST_PARAMS_INVALID", HttpStatus.BAD_REQUEST);
         }
@@ -87,13 +87,13 @@ public class MemeService {
         Page<Meme> memePage;
 
         if (isApproved && isPending) {
-            memePage = this.memeRepository.findAllByPublisherUsername(principalUsername,
+            memePage = this.memeRepository.findAllByPublisherUsername(username,
                     pageRequest.withSort(Sort.Direction.DESC, "approvedOn", "publishedOn"));
         } else if (isApproved) {
-            memePage = this.memeRepository.findAllByPublisherUsernameAndApprovedOnNotNull(principalUsername,
+            memePage = this.memeRepository.findAllByPublisherUsernameAndApprovedOnNotNull(username,
                     pageRequest.withSort(Sort.Direction.DESC, "approvedOn"));
         } else {
-            memePage = this.memeRepository.findAllByPublisherUsernameAndApprovedOnNull(principalUsername,
+            memePage = this.memeRepository.findAllByPublisherUsernameAndApprovedOnNull(username,
                     pageRequest.withSort(Sort.Direction.DESC, "publishedOn"));
         }
 
@@ -112,15 +112,11 @@ public class MemeService {
     }
 
     public Meme createMeme(MultipartFile image, Meme meme, String principalUsername) {
-        final DogeUser publisher = this.dogeUserService.getUserByUsername(principalUsername);
-
-        if (!publisher.isConfirmed()) {
-            throw new DogeHttpException("USER_NOT_CONFIRMED", HttpStatus.METHOD_NOT_ALLOWED);
-        }
+        final DogeUser publisher = this.dogeUserService.getConfirmedUser(principalUsername);
 
         try {
             final String imageId = UUID.randomUUID() + ".png";
-            this.cloudStorageService.upload(image.getBytes(), imageId);
+            this.cloudStorageService.upload(image.getBytes(), imageId, "meme");
             meme.setImageKey(imageId);
         } catch (IOException e) {
             throw new DogeHttpException("CAN_NOT_READ_IMAGE_BYTES", HttpStatus.BAD_REQUEST);
@@ -142,11 +138,7 @@ public class MemeService {
     }
 
     public Meme approveMeme(Long memeId, String principalUsername) {
-        final DogeUser user = this.dogeUserService.getUserByUsername(principalUsername);
-        if (!user.isConfirmed()) {
-            throw new DogeHttpException("USER_NOT_CONFIRMED", HttpStatus.METHOD_NOT_ALLOWED);
-        }
-
+        final DogeUser user = this.dogeUserService.getConfirmedUser(principalUsername);
         final Meme meme = this.getMeme(memeId, principalUsername);
 
         if (meme.isApproved()) {

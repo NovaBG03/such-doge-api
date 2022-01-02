@@ -41,9 +41,7 @@ public class RegisterService {
 
     public DogeUser registerUser(String username, String email, String password) {
         DogeUser user = dogeUserService.createUser(username, email, password);
-
         this.eventPublisher.publishEvent(new OnEmailConfirmationNeededEvent(this, user));
-
         return user;
     }
 
@@ -54,7 +52,6 @@ public class RegisterService {
 
     public long resentActivationLink(String username) {
         final DogeUser user = this.dogeUserService.getUserByUsername(username);
-
         if (this.emailConfirmationTokenService.canCreateNewToken(user)) {
             this.sendActivationLink(user);
         }

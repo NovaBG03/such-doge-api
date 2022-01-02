@@ -15,10 +15,10 @@ public class CloudStorageService {
         this.awsConfig = awsConfig;
     }
 
-    public void upload(byte[] fileBytes, String fileKey) {
+    public void upload(byte[] fileBytes, String fileKey, String path) {
         PutObjectRequest putRequest = PutObjectRequest.builder()
                 .bucket(awsConfig.getBucketName())
-                .key(fileKey)
+                .key(path + "/" + fileKey)
                 .build();
         s3Client.putObject(putRequest, RequestBody.fromBytes(fileBytes));
     }

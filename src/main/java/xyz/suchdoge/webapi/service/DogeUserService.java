@@ -7,6 +7,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.model.DogeRole;
 import xyz.suchdoge.webapi.model.DogeRoleLevel;
@@ -15,14 +17,20 @@ import xyz.suchdoge.webapi.repository.DogeRoleRepository;
 import xyz.suchdoge.webapi.repository.DogeUserRepository;
 import xyz.suchdoge.webapi.security.DogeUserDetails;
 import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmationNeededEvent;
+import xyz.suchdoge.webapi.service.imageGenerator.ImageGeneratorService;
+import xyz.suchdoge.webapi.service.storage.CloudStorageService;
 import xyz.suchdoge.webapi.service.validator.DogeUserVerifier;
 import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
+
+import java.io.IOException;
 
 @Service
 public class DogeUserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final DogeUserRepository dogeUserRepository;
     private final DogeRoleRepository dogeRoleRepository;
+    private final CloudStorageService cloudStorageService;
+    private final ImageGeneratorService imageGeneratorService;
     private final DogeUserVerifier dogeUserVerifier;
     private final ModelValidatorService modelValidatorService;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -30,12 +38,16 @@ public class DogeUserService implements UserDetailsService {
     public DogeUserService(PasswordEncoder passwordEncoder,
                            DogeUserRepository dogeUserRepository,
                            DogeRoleRepository dogeRoleRepository,
+                           CloudStorageService cloudStorageService,
+                           ImageGeneratorService imageGeneratorService,
                            DogeUserVerifier dogeUserVerifier,
                            ModelValidatorService modelValidatorService,
                            ApplicationEventPublisher applicationEventPublisher) {
         this.passwordEncoder = passwordEncoder;
         this.dogeUserRepository = dogeUserRepository;
         this.dogeRoleRepository = dogeRoleRepository;
+        this.cloudStorageService = cloudStorageService;
+        this.imageGeneratorService = imageGeneratorService;
         this.dogeUserVerifier = dogeUserVerifier;
         this.modelValidatorService = modelValidatorService;
         this.applicationEventPublisher = applicationEventPublisher;
@@ -51,6 +63,15 @@ public class DogeUserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(username));
     }
 
+    public DogeUser getConfirmedUser(String username) {
+        final DogeUser user = this.getUserByUsername(username);
+        if (!user.isConfirmed()) {
+            throw new DogeHttpException("USER_NOT_CONFIRMED", HttpStatus.METHOD_NOT_ALLOWED);
+        }
+        return user;
+    }
+
+    @Transactional
     public DogeUser createUser(String username, String email, String password) {
         dogeUserVerifier.verifyUsername(username);
         dogeUserVerifier.verifyEmail(email);
@@ -66,8 +87,12 @@ public class DogeUserService implements UserDetailsService {
 
         DogeRole userRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER);
         user.addRole(userRole);
+        DogeUser savedUser = dogeUserRepository.save(user);
 
-        return dogeUserRepository.save(user);
+        final byte[] profilePic = this.imageGeneratorService.generateProfilePic(savedUser.getUsername());
+        this.cloudStorageService.upload(profilePic, username + ".png", "user");
+
+        return savedUser;
     }
 
     public DogeUser updateUserInfo(String email, String publicKey, String username) {
@@ -114,5 +139,18 @@ public class DogeUserService implements UserDetailsService {
         this.dogeUserVerifier.verifyPassword(newPassword);
         user.setEncodedPassword(this.passwordEncoder.encode(newPassword));
         dogeUserRepository.save(user);
+    }
+
+    public void setProfileImage(MultipartFile image, String username) {
+        final DogeUser user = this.getConfirmedUser(username);
+
+        try {
+            final String imageId = user.getUsername() + ".png";
+            this.cloudStorageService.upload(image.getBytes(), imageId, "user");
+        } catch (IOException e) {
+            throw new DogeHttpException("CAN_NOT_READ_IMAGE_BYTES", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            throw new DogeHttpException("CAN_NOT_SAVE_IMAGE", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

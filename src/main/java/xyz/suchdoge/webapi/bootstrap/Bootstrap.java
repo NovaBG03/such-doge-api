@@ -9,8 +9,10 @@ import xyz.suchdoge.webapi.model.DogeRoleLevel;
 import xyz.suchdoge.webapi.model.DogeUser;
 import xyz.suchdoge.webapi.repository.DogeRoleRepository;
 import xyz.suchdoge.webapi.repository.DogeUserRepository;
+import xyz.suchdoge.webapi.service.imageGenerator.ImageGeneratorService;
+import xyz.suchdoge.webapi.service.storage.CloudStorageService;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -20,13 +22,19 @@ public class Bootstrap implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final DogeUserRepository dogeUserRepository;
     private final DogeRoleRepository dogeRoleRepository;
+    private final ImageGeneratorService imageGeneratorService;
+    private final CloudStorageService cloudStorageService;
 
     public Bootstrap(PasswordEncoder passwordEncoder,
                      DogeUserRepository dogeUserRepository,
-                     DogeRoleRepository dogeRoleRepository) {
+                     DogeRoleRepository dogeRoleRepository,
+                     ImageGeneratorService imageGeneratorService,
+                     CloudStorageService cloudStorageService) {
         this.passwordEncoder = passwordEncoder;
         this.dogeUserRepository = dogeUserRepository;
         this.dogeRoleRepository = dogeRoleRepository;
+        this.imageGeneratorService = imageGeneratorService;
+        this.cloudStorageService = cloudStorageService;
     }
 
     @Override
@@ -49,6 +57,7 @@ public class Bootstrap implements CommandLineRunner {
     }
 
     private void loadUsers() {
+        Collection<DogeUser> users = new ArrayList<>();
         DogeRole userRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.USER);
         DogeRole moderatorRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.MODERATOR);
         DogeRole adminRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.ADMIN);
@@ -60,6 +69,7 @@ public class Bootstrap implements CommandLineRunner {
                 .build();
         user.addRole(userRole);
         dogeUserRepository.save(user);
+        users.add(user);
 
         DogeUser moderator = DogeUser.builder()
                 .username("moderen")
@@ -68,6 +78,7 @@ public class Bootstrap implements CommandLineRunner {
                 .build();
         moderator.addRoles(Lists.newArrayList(userRole, moderatorRole));
         dogeUserRepository.save(moderator);
+        users.add(moderator);
 
         DogeUser admin = DogeUser.builder()
                 .username("admin")
@@ -76,5 +87,14 @@ public class Bootstrap implements CommandLineRunner {
                 .build();
         admin.addRoles(Lists.newArrayList(userRole, moderatorRole, adminRole));
         dogeUserRepository.save(admin);
+        users.add(admin);
+
+        try {
+            users.forEach(u -> cloudStorageService.upload(
+                    imageGeneratorService.generateProfilePic(u.getUsername()),
+                    u.getUsername() + ".png",
+                    "user"));
+        } catch (Exception e) {
+        }
     }
 }
