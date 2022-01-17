@@ -1,5 +1,7 @@
 package xyz.suchdoge.webapi.security;
 
+import com.google.common.collect.ImmutableList;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -11,6 +13,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import xyz.suchdoge.webapi.security.jwt.JwtTokenVerifier;
 import xyz.suchdoge.webapi.security.jwt.JwtUserPasswordAuthenticationFilter;
 import xyz.suchdoge.webapi.service.jwt.JwtService;
@@ -25,6 +30,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final UserDetailsService userDetailsService;
+
+    @Value("${SUCHDOGE_DOMAIN_URL}")
+    private String domainUrl;
 
     public WebSecurityConfig(PasswordEncoder passwordEncoder,
                              JwtService jwtService,
@@ -54,7 +62,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/register",
                         "/activate/*",
                         "/refresh/*",
-                        "/meme/public/**").permitAll()
+                        "/meme/public/**",
+                        "/doge-websocket/**").permitAll()
                 .anyRequest().authenticated();
     }
 
@@ -71,16 +80,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return provider;
     }
 
-    // todo enable cors
-//    @Bean
-//    public CorsConfigurationSource corsConfigurationSource() {
-//        final CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.setAllowedOriginPatterns(ImmutableList.of(CorsConfiguration.ALL));
-//        configuration.setAllowedMethods(ImmutableList.of("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH"));
-//        configuration.setAllowCredentials(true);
-//        configuration.setAllowedHeaders(ImmutableList.of("Authorization", "Cache-Control", "Content-Type"));
-//        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", configuration);
-//        return source;
-//    }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        final CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(ImmutableList.of(domainUrl));
+        configuration.setAllowedMethods(ImmutableList.of("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(ImmutableList.of("Authorization", "Authorization-Refresh", "Cache-Control", "Content-Type"));
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }

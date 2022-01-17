@@ -13,11 +13,11 @@ import java.util.List;
 @Configuration
 public class WebConfiguration implements WebMvcConfigurer {
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        // todo enable cors
-        registry.addMapping("/**").allowedMethods("*");
-    }
+    // disable cors
+//    @Override
+//    public void addCorsMappings(CorsRegistry registry) {
+//        registry.addMapping("/**").allowedMethods("*");
+//    }
 
     @Bean
     public RestTemplate restTemplate(List<HttpMessageConverter<?>> messageConverters) {

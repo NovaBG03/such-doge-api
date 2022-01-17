@@ -35,12 +35,18 @@ public class JwtService {
 
     public Authentication getAuthentication(HttpServletRequest request) {
         String authorizationToken = request.getHeader(jwtConfig.getAuthorizationHeader());
-
         if (Strings.isNullOrEmpty(authorizationToken) || !authorizationToken.startsWith(jwtConfig.getTokenPrefix())) {
             return null;
         }
 
         String token = authorizationToken.replace(jwtConfig.getTokenPrefix(), "");
+        return this.getAuthentication(token);
+    }
+
+    public Authentication getAuthentication(String token) {
+        if (Strings.isNullOrEmpty(token)) {
+            return null;
+        }
 
         Jws<Claims> claimsJws = Jwts.parserBuilder()
                 .setSigningKey(secretKey)
