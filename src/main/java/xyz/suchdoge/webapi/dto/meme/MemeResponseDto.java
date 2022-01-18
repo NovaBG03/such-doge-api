@@ -1,7 +1,6 @@
 package xyz.suchdoge.webapi.dto.meme;
 
 import lombok.*;
-import xyz.suchdoge.webapi.model.DogeUser;
 
 import java.time.LocalDateTime;
 

@@ -2,7 +2,7 @@ package xyz.suchdoge.webapi.security;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import xyz.suchdoge.webapi.model.DogeUser;
+import xyz.suchdoge.webapi.model.user.DogeUser;
 
 import java.util.Collection;
 import java.util.stream.Collectors;

@@ -2,6 +2,7 @@ package xyz.suchdoge.webapi.model;
 
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
+import xyz.suchdoge.webapi.model.user.DogeUser;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;

@@ -1,4 +1,4 @@
-package xyz.suchdoge.webapi.model;
+package xyz.suchdoge.webapi.model.user;
 
 import com.google.common.collect.Sets;
 import org.springframework.security.core.GrantedAuthority;

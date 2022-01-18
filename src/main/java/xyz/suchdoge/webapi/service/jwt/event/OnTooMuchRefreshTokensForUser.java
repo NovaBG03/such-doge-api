@@ -2,7 +2,7 @@ package xyz.suchdoge.webapi.service.jwt.event;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
-import xyz.suchdoge.webapi.model.DogeUser;
+import xyz.suchdoge.webapi.model.user.DogeUser;
 
 @Getter
 public class OnTooMuchRefreshTokensForUser extends ApplicationEvent {

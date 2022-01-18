@@ -4,7 +4,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.suchdoge.webapi.dto.user.*;
 import xyz.suchdoge.webapi.mapper.user.UserMapper;
-import xyz.suchdoge.webapi.model.DogeUser;
+import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.service.DogeUserService;
 import xyz.suchdoge.webapi.service.jwt.RefreshTokenService;
 import xyz.suchdoge.webapi.service.register.RegisterService;

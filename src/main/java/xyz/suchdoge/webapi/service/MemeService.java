@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
-import xyz.suchdoge.webapi.model.DogeUser;
+import xyz.suchdoge.webapi.model.notification.Notification;
+import xyz.suchdoge.webapi.model.notification.NotificationCategory;
+import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.model.Meme;
 import xyz.suchdoge.webapi.repository.MemeRepository;
 import xyz.suchdoge.webapi.service.storage.CloudStorageService;
@@ -25,15 +27,18 @@ public class MemeService {
     private final MemeRepository memeRepository;
     private final DogeUserService dogeUserService;
     private final CloudStorageService cloudStorageService;
+    private final NotificationService notificationService;
     private final ModelValidatorService modelValidatorService;
 
     public MemeService(MemeRepository memeRepository,
                        DogeUserService dogeUserService,
                        CloudStorageService cloudStorageService,
+                       NotificationService notificationService,
                        ModelValidatorService modelValidatorService) {
         this.memeRepository = memeRepository;
         this.dogeUserService = dogeUserService;
         this.cloudStorageService = cloudStorageService;
+        this.notificationService = notificationService;
         this.modelValidatorService = modelValidatorService;
     }
 
@@ -149,5 +154,36 @@ public class MemeService {
         meme.setApprovedOn(LocalDateTime.now());
 
         return this.memeRepository.save(meme);
+    }
+
+    public void deleteMeme(Long memeId, String principalUsername) {
+        // checks user is confirmed
+        final DogeUser user = this.dogeUserService.getConfirmedUser(principalUsername);
+        final Meme meme = this.getMeme(memeId, principalUsername);
+
+        if (meme.isApproved()) {
+            this.removeMeme(meme);
+            return;
+        }
+
+        this.denyMeme(meme);
+    }
+
+    private void removeMeme(Meme meme) {
+        // todo make delete meme and persist point earned with it
+        throw new RuntimeException("Not Implemented");
+    }
+
+    private void denyMeme(Meme meme) {
+        final DogeUser publisher = meme.getPublisher();
+        this.memeRepository.delete(meme);
+        this.notificationService.pushNotificationTo(
+                Notification.builder()
+                        .title("Disapproved")
+                        .message("Your meme \"" + meme.getTitle() + "\" has been rejected!")
+                        .category(NotificationCategory.DANGER)
+                        .build(),
+                publisher
+        );
     }
 }

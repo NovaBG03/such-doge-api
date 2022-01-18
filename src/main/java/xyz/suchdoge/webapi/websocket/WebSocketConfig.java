@@ -9,6 +9,7 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import xyz.suchdoge.webapi.service.jwt.JwtConfig;
 import xyz.suchdoge.webapi.service.jwt.JwtService;
 
 @Order(Ordered.HIGHEST_PRECEDENCE + 99)
@@ -16,12 +17,14 @@ import xyz.suchdoge.webapi.service.jwt.JwtService;
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final JwtService jwtService;
+    private final JwtConfig jwtConfig;
 
     @Value("${SUCHDOGE_DOMAIN_URL}")
     private String domainUrl;
 
-    public WebSocketConfig(JwtService jwtService) {
+    public WebSocketConfig(JwtService jwtService, JwtConfig jwtConfig) {
         this.jwtService = jwtService;
+        this.jwtConfig = jwtConfig;
     }
 
     @Override
@@ -33,12 +36,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/doge-websocket")
+                .setAllowedOrigins(domainUrl);
+
+        registry.addEndpoint("/doge-websocket")
                 .setAllowedOrigins(domainUrl)
                 .withSockJS();
     }
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new AutChannelInterceptor(jwtService));
+        registration.interceptors(new AutChannelInterceptor(jwtService, jwtConfig));
     }
 }

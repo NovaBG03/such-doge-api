@@ -3,7 +3,7 @@ package xyz.suchdoge.webapi.service.register.listener;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import xyz.suchdoge.webapi.model.token.EmailConfirmationToken;
-import xyz.suchdoge.webapi.model.DogeUser;
+import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.service.register.EmailConfirmationTokenService;
 import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmTokenNoLongerValidEvent;
 

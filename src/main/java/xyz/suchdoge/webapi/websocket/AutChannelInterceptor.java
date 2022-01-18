@@ -6,31 +6,34 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.core.Authentication;
+import xyz.suchdoge.webapi.service.jwt.JwtConfig;
 import xyz.suchdoge.webapi.service.jwt.JwtService;
 
 import java.util.List;
 
 public class AutChannelInterceptor implements ChannelInterceptor {
     private final JwtService jwtService;
+    private final JwtConfig jwtConfig;
 
-    public AutChannelInterceptor(JwtService jwtService) {
+    public AutChannelInterceptor(JwtService jwtService, JwtConfig jwtConfig) {
         this.jwtService = jwtService;
+        this.jwtConfig = jwtConfig;
     }
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-        List<String> tokenList = accessor.getNativeHeader("Authorization");
-        String token = null;
+        List<String> tokenList = accessor.getNativeHeader(jwtConfig.getAuthorizationHeader());
+        String authorizationToken = null;
         if(tokenList == null || tokenList.size() < 1) {
             return message;
         } else {
-            token = tokenList.get(0);
-            if(token == null) {
+            authorizationToken = tokenList.get(0);
+            if(authorizationToken == null) {
                 return message;
             }
         }
-        Authentication user = jwtService.getAuthentication(token); // access authentication header(s)
+        Authentication user = jwtService.getAuthentication(authorizationToken); // access authentication header(s)
         accessor.setUser(user);
 
         return message;

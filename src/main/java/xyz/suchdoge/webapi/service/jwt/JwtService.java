@@ -35,15 +35,16 @@ public class JwtService {
 
     public Authentication getAuthentication(HttpServletRequest request) {
         String authorizationToken = request.getHeader(jwtConfig.getAuthorizationHeader());
+        return this.getAuthentication(authorizationToken);
+    }
+
+    // authorizationToken = prefix + token
+    public Authentication getAuthentication(String authorizationToken) {
         if (Strings.isNullOrEmpty(authorizationToken) || !authorizationToken.startsWith(jwtConfig.getTokenPrefix())) {
             return null;
         }
 
         String token = authorizationToken.replace(jwtConfig.getTokenPrefix(), "");
-        return this.getAuthentication(token);
-    }
-
-    public Authentication getAuthentication(String token) {
         if (Strings.isNullOrEmpty(token)) {
             return null;
         }

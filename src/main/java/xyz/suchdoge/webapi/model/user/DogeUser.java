@@ -1,11 +1,15 @@
-package xyz.suchdoge.webapi.model;
+package xyz.suchdoge.webapi.model.user;
 
 import com.google.common.collect.Sets;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.Length;
+import xyz.suchdoge.webapi.model.Meme;
+import xyz.suchdoge.webapi.model.notification.Notification;
 import xyz.suchdoge.webapi.model.token.EmailConfirmationToken;
+import xyz.suchdoge.webapi.model.user.DogeRole;
+import xyz.suchdoge.webapi.model.user.DogeRoleLevel;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -65,8 +69,13 @@ public class DogeUser {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private Collection<EmailConfirmationToken> emailConfirmationTokens;
 
+    @Builder.Default
     @OneToMany(mappedBy = "publisher")
-    private Collection<Meme> memes;
+    private Collection<Meme> memes = Sets.newHashSet();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "user")
+    private Collection<Notification> notifications = Sets.newHashSet();
 
     public void addRole(DogeRole role) {
         this.roles.add(role);

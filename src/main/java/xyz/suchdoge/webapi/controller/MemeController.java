@@ -89,4 +89,9 @@ public class MemeController {
     public void approveMeme(@PathVariable Long memeId, Principal principal) {
         this.memeService.approveMeme(memeId, principal.getName());
     }
+
+    // todo think about different ways of deleting memes
+    // todo create delete/deny meme endpoints
+    // deny - allow admin/moderator to delete approved or not memes
+    // delete - allow user to delete their approved or not memes
 }

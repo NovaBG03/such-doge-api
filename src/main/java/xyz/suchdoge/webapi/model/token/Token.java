@@ -1,7 +1,7 @@
 package xyz.suchdoge.webapi.model.token;
 
 import lombok.*;
-import xyz.suchdoge.webapi.model.DogeUser;
+import xyz.suchdoge.webapi.model.user.DogeUser;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;

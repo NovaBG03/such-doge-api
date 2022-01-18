@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.model.token.EmailConfirmationToken;
-import xyz.suchdoge.webapi.model.DogeUser;
+import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.model.token.Token;
 import xyz.suchdoge.webapi.repository.EmailConfirmationTokenRepository;
 import xyz.suchdoge.webapi.service.HashingService;
