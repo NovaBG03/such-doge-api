@@ -8,18 +8,24 @@ import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.repository.NotificationRepository;
 import xyz.suchdoge.webapi.websocket.WebSocketService;
 
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 @Service
 public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationMapper notificationMapper;
     private final WebSocketService webSocketService;
+    private final DogeUserService userService;
 
     public NotificationService(NotificationRepository notificationRepository,
                                NotificationMapper notificationMapper,
-                               WebSocketService webSocketService) {
+                               WebSocketService webSocketService,
+                               DogeUserService userService) {
         this.notificationRepository = notificationRepository;
         this.notificationMapper = notificationMapper;
         this.webSocketService = webSocketService;
+        this.userService = userService;
     }
 
     public void pushNotificationTo(Notification notification, DogeUser user) {
@@ -29,5 +35,18 @@ public class NotificationService {
         final NotificationResponseDto notificationDto = notificationMapper
                 .notificationToNotificationResponseDto(savedNotification);
         webSocketService.sendTo(user.getUsername(), notificationDto);
+    }
+
+    public Collection<Notification> getAllNotifications(String username) {
+        return this.notificationRepository.findAllByUserUsername(username);
+    }
+
+    public void deleteAll(Collection<Long> ids, String username) {
+        DogeUser user = this.userService.getUserByUsername(username);
+        Collection<Notification> notificationsToDelete = user.getNotifications()
+                .stream()
+                .filter(notification -> ids.contains(notification.getId()))
+                .collect(Collectors.toList());
+        this.notificationRepository.deleteAll(notificationsToDelete);
     }
 }
