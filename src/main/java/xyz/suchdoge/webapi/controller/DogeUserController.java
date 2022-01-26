@@ -3,6 +3,7 @@ package xyz.suchdoge.webapi.controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.suchdoge.webapi.dto.user.*;
+import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.mapper.user.UserMapper;
 import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.service.DogeUserService;
@@ -11,6 +12,8 @@ import xyz.suchdoge.webapi.service.register.RegisterService;
 
 import javax.servlet.http.HttpServletResponse;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Collection;
 
 @RestController
 public class DogeUserController {
@@ -61,11 +64,27 @@ public class DogeUserController {
     }
 
     @PatchMapping("/me")
-    public UserInfoResponseDto updatePrincipalInfo(@RequestBody UserInfoDto userInfoDto, Principal principal) {
-        final DogeUser user = this.dogeUserService
-                .updateUserInfo(userInfoDto.getEmail(), userInfoDto.getPublicKey(), principal.getName());
+    public UserInfoPatchResponseDto patchPrincipalInfo(@RequestBody UserInfoDto userInfoDto, Principal principal) {
+        DogeUser user = this.dogeUserService.getUserByUsername(principal.getName());
+        Collection<DogeHttpException> exceptions = new ArrayList<>();
 
-        return this.userMapper.dogeUserToUserInfoResponseDto(user);
+        try {
+            if (userInfoDto.getEmail() != null) {
+                user = this.dogeUserService.changeUserEmail(userInfoDto.getEmail(), user);
+            }
+        } catch (DogeHttpException e) {
+            exceptions.add(e);
+        }
+
+        try {
+            if (userInfoDto.getPublicKey() != null) {
+                user = this.dogeUserService.changeDogePublicKey(userInfoDto.getPublicKey(), user);
+            }
+        } catch (DogeHttpException e) {
+            exceptions.add(e);
+        }
+
+        return this.userMapper.dogeUserToUserInfoPatchResponseDto(user, exceptions);
     }
 
     @PostMapping("/me/password")

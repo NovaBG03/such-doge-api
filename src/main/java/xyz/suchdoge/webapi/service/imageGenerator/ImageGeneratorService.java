@@ -25,7 +25,7 @@ public class ImageGeneratorService {
     }
 
 
-    public byte[] generateProfilePic(String username) {
+    public byte[] generateProfilePic(String username) throws DogeHttpException {
         String url = "https://{domain}/{avatarType}/{size}/{username}?square&colors={colorPalette}";
         byte[] svgBytes = this.restTemplate.getForObject(url, byte[].class,
                 this.config.getDomain(),

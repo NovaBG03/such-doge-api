@@ -60,7 +60,7 @@ public class DogeUser {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private Set<DogeRole> roles = Sets.newHashSet();
+    private Collection<DogeRole> roles = Sets.newHashSet();
 
     // TODO add validation for doge public key
     @Column()

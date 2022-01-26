@@ -23,7 +23,12 @@ import xyz.suchdoge.webapi.service.validator.DogeUserVerifier;
 import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 
+/**
+ * Service for common user operations
+ * @author Nikita
+ */
 @Service
 public class DogeUserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
@@ -35,6 +40,9 @@ public class DogeUserService implements UserDetailsService {
     private final ModelValidatorService modelValidatorService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
+    /**
+     * Constructs a UserService with needed dependencies
+     */
     public DogeUserService(PasswordEncoder passwordEncoder,
                            DogeUserRepository dogeUserRepository,
                            DogeRoleRepository dogeRoleRepository,
@@ -53,17 +61,37 @@ public class DogeUserService implements UserDetailsService {
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
+    /**
+     * Retrieves a specific user from the database and creates UserDetails from it.
+     * Mostly used by the framework.
+     * @param username username to search for.
+     * @return UserDetails wrapper of user from the database.
+     * @exception UsernameNotFoundException if the user does not exist.
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return new DogeUserDetails(getUserByUsername(username));
     }
 
-    public DogeUser getUserByUsername(String username) {
+    /**
+     * Retrieves a specific user from the database.
+     * @param username username to search for.
+     * @return user from the database.
+     * @exception UsernameNotFoundException if the user does not exist.
+     */
+    public DogeUser getUserByUsername(String username) throws UsernameNotFoundException {
         return dogeUserRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(username));
     }
 
-    public DogeUser getConfirmedUser(String username) {
+    /**
+     * Retrieves a confirmed user from the database.
+     * @param username username to search for.
+     * @return confirmed user from the database.
+     * @throws UsernameNotFoundException if the user does not exist.
+     * @throws DogeHttpException USER_NOT_CONFIRMED if user is found but not confirmed.
+     */
+    public DogeUser getConfirmedUser(String username) throws DogeHttpException, UsernameNotFoundException {
         final DogeUser user = this.getUserByUsername(username);
         if (!user.isConfirmed()) {
             throw new DogeHttpException("USER_NOT_CONFIRMED", HttpStatus.METHOD_NOT_ALLOWED);
@@ -71,80 +99,151 @@ public class DogeUserService implements UserDetailsService {
         return user;
     }
 
+    /**
+     * Creates new user instance and save it to the database.
+     * @param username new account's username.
+     * @param email email associated with the new account.
+     * @param password password for the new account.
+     * @return saved to the database user.
+     */
     @Transactional
-    public DogeUser createUser(String username, String email, String password) {
+    public DogeUser createUser(String username, String email, String password) throws DogeHttpException {
+        // validate username, email and password
         dogeUserVerifier.verifyUsername(username);
         dogeUserVerifier.verifyEmail(email);
         dogeUserVerifier.verifyPassword(password);
 
+        // create user instance
         final DogeUser user = DogeUser.builder()
-                .username(username)
-                .email(email)
+                .username(username.trim())
+                .email(email.trim())
                 .encodedPassword(passwordEncoder.encode(password))
                 .build();
 
-        modelValidatorService.validate(user);
-
+        // mark user account as not confirmed
         DogeRole userRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER);
         user.addRole(userRole);
+
+        // validate user and save it to the database
+        modelValidatorService.validate(user);
         DogeUser savedUser = dogeUserRepository.save(user);
 
-        final byte[] profilePic = this.imageGeneratorService.generateProfilePic(savedUser.getUsername());
-        this.cloudStorageService.upload(profilePic, username + ".png", "user");
+        // generate personalized profile pic and save it to cloud storage
+        try {
+            final byte[] profilePic = this.imageGeneratorService.generateProfilePic(savedUser.getUsername());
+            this.cloudStorageService.upload(profilePic, savedUser.getUsername() + ".png", "user");
+        } catch (Exception e) {
+            // todo do something when can not generate or save personalized profile pic
+        }
 
         return savedUser;
     }
 
-    public DogeUser updateUserInfo(String email, String publicKey, String username) {
-        final DogeUser user = this.getUserByUsername(username);
+    /**
+     * Change email of a specific user account.
+     * @param newEmail new email to associate with the user account.
+     * @param user user to be updated.
+     * @return updated user.
+     * @throws DogeHttpException DOGE_USER_EMAIL_INVALID if is not valid email.
+     * @throws DogeHttpException DOGE_USER_EMAIL_EXISTS if account with this email already exists.
+     */
+    public DogeUser changeUserEmail(String newEmail, DogeUser user) throws DogeHttpException {
+        // validate the new email
+        this.dogeUserVerifier.verifyEmail(newEmail);
 
-        boolean isEmailChanged = false;
-        if (email != null && !email.trim().isBlank() && !email.equals(user.getEmail())) {
-            this.dogeUserVerifier.verifyEmail(email.trim());
-            user.setEmail(email.trim());
-            user.getRoles().removeIf(dogeRole -> dogeRole.getLevel().equals(DogeRoleLevel.USER));
-            user.addRole(this.dogeRoleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER));
-            isEmailChanged = true;
-        }
+        // update email
+        user.setEmail(newEmail.trim());
 
-        if (publicKey != null) {
-            user.setDogePublicKey(publicKey.trim());
-        }
+        // mark user account as not confirmed
+        user.setRoles(user.getRoles()
+                .stream()
+                .filter(dogeRole -> !dogeRole.getLevel().equals(DogeRoleLevel.USER))
+                .collect(Collectors.toSet()));
+        user.addRole(this.dogeRoleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER));
 
+        // validate user and save it to the database
         this.modelValidatorService.validate(user);
         final DogeUser updatedUser = dogeUserRepository.save(user);
 
-        if (isEmailChanged) {
-            this.applicationEventPublisher.publishEvent(new OnEmailConfirmationNeededEvent(this, updatedUser));
-        }
+        // publish email confirmation needed event
+        this.applicationEventPublisher.publishEvent(new OnEmailConfirmationNeededEvent(this, updatedUser));
 
         return updatedUser;
     }
 
-    public void changePassword(String oldPassword, String newPassword, String confirmPassword, String username) {
+    /**
+     * Change doge public key of a specific user account.
+     * @param newDogePublicKey new doge public key to associate with the user account.
+     * @param user user to be updated.
+     * @return updated user.
+     * @throws DogeHttpException DOGE_USER_PUBLIC_KEY_INVALID if new doge public key is not.
+     */
+    public DogeUser changeDogePublicKey(String newDogePublicKey, DogeUser user) throws DogeHttpException {
+        // validate the new public key
+        dogeUserVerifier.verifyDogePublicKey(newDogePublicKey);
+
+        // update public key
+        user.setDogePublicKey(newDogePublicKey.trim());
+
+        // validate user and save it to the database
+        this.modelValidatorService.validate(user);
+        return dogeUserRepository.save(user);
+    }
+
+    /**
+     * Change password of a specific user account
+     * @param oldPassword old password
+     * @param newPassword new password
+     * @param confirmPassword confirm new password
+     * @param username username of the user whose password to change
+     * @throws DogeHttpException PASSWORDS_DOES_NOT_MATCH if new password and confirm password does not match
+     * @throws DogeHttpException WRONG_OLD_PASSWORD if old password is wrong
+     * @throws DogeHttpException NEW_PASSWORD_AND_OLD_PASSWORD_ARE_THE_SAME if old password and new password are the same
+     */
+    public void changePassword(String oldPassword, String newPassword, String confirmPassword, String username)
+            throws DogeHttpException {
+        // retrieve user from database
         final DogeUser user = this.getUserByUsername(username);
 
+        // check if new password and confirm password match
         if (!newPassword.equals(confirmPassword)) {
             throw new DogeHttpException("PASSWORDS_DOES_NOT_MATCH", HttpStatus.BAD_REQUEST);
         }
 
+        // check if old password is correct
         if (!passwordEncoder.matches(oldPassword, user.getEncodedPassword())) {
             throw new DogeHttpException("WRONG_OLD_PASSWORD", HttpStatus.BAD_REQUEST);
         }
 
+        // check if new password is different from the old one
         if (passwordEncoder.matches(newPassword, user.getEncodedPassword())) {
             throw new DogeHttpException("NEW_PASSWORD_AND_OLD_PASSWORD_ARE_THE_SAME", HttpStatus.BAD_REQUEST);
         }
 
+        // validate the new password
         this.dogeUserVerifier.verifyPassword(newPassword);
+
+        // update password
         user.setEncodedPassword(this.passwordEncoder.encode(newPassword));
+
+        // validate user and save it to the database
+        this.modelValidatorService.validate(user);
         dogeUserRepository.save(user);
     }
 
+    /**
+     * Change profile picture of a specific user account
+     * @param image new profile image multipart file
+     * @param username username of the user whose image to update
+     * @throws DogeHttpException CAN_NOT_READ_IMAGE_BYTES if multipart file bytes can't be read
+     * @throws DogeHttpException CAN_NOT_SAVE_IMAGE if image can not be uploaded to the cloud
+     */
     public void setProfileImage(MultipartFile image, String username) {
+        // retrieve confirmed user from database
         final DogeUser user = this.getConfirmedUser(username);
 
         try {
+            // try to upload image bytes to cloud storage
             final String imageId = user.getUsername() + ".png";
             this.cloudStorageService.upload(image.getBytes(), imageId, "user");
         } catch (IOException e) {
