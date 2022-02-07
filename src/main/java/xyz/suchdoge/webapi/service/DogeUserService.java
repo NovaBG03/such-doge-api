@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.stream.Collectors;
 
 /**
- * Service for common user operations
+ * Service for common user operations.
  * @author Nikita
  */
 @Service
@@ -41,7 +41,7 @@ public class DogeUserService implements UserDetailsService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
-     * Constructs a UserService with needed dependencies
+     * Constructs a UserService with needed dependencies.
      */
     public DogeUserService(PasswordEncoder passwordEncoder,
                            DogeUserRepository dogeUserRepository,
