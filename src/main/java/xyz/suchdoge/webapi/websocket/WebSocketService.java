@@ -16,7 +16,7 @@ public class WebSocketService {
         this.objectMapper = objectMapper;
     }
 
-    public void sendTo(String username, Object payload) {
+    public void sendTo(String username, String destination, Object payload) {
         String serializedPayload = "";
         try {
             serializedPayload = objectMapper.writeValueAsString(payload);
@@ -25,6 +25,6 @@ public class WebSocketService {
         }
 
         System.out.println("Sending to: " + username );
-        messagingTemplate.convertAndSendToUser(username ,"/queue/notification", serializedPayload);
+        messagingTemplate.convertAndSendToUser(username ,destination, serializedPayload);
     }
 }

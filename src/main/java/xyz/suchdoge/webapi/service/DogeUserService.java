@@ -41,7 +41,7 @@ public class DogeUserService implements UserDetailsService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
-     * Constructs a UserService with needed dependencies.
+     * Constructs new UserService with needed dependencies.
      */
     public DogeUserService(PasswordEncoder passwordEncoder,
                            DogeUserRepository dogeUserRepository,

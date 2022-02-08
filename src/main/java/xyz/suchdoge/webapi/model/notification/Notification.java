@@ -17,7 +17,7 @@ public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, updatable = false)
-    private Long Id;
+    private Long id;
 
     @NotNull(message = "NOTIFICATION_TITLE_NULL")
     @Length.List({
