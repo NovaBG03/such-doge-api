@@ -8,14 +8,13 @@ import org.hibernate.validator.constraints.Length;
 import xyz.suchdoge.webapi.model.Meme;
 import xyz.suchdoge.webapi.model.notification.Notification;
 import xyz.suchdoge.webapi.model.token.EmailConfirmationToken;
-import xyz.suchdoge.webapi.model.user.DogeRole;
-import xyz.suchdoge.webapi.model.user.DogeRoleLevel;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
-import java.util.Set;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "user")
@@ -77,12 +76,30 @@ public class DogeUser {
     @OneToMany(mappedBy = "user")
     private Collection<Notification> notifications = Sets.newHashSet();
 
+    /**
+     * Add a new role.
+     * @param role role to be added.
+     */
     public void addRole(DogeRole role) {
-        this.roles.add(role);
+        if (this.roles.stream().noneMatch(r -> r.equals(role))) {
+            this.roles.add(role);
+        }
     }
 
+    /**
+     * Add multiple roles.
+     * @param roles roles to be added.
+     */
     public void addRoles(Collection<DogeRole> roles) {
         this.roles.addAll(roles);
+    }
+
+    /**
+     * Remove specific role by role level if exists.
+     * @param roleLevel role level to be removed.
+     */
+    public void removeRole(DogeRoleLevel roleLevel) {
+        this.roles.removeIf(dogeRole -> dogeRole.getLevel().equals(roleLevel));
     }
 
     public boolean isConfirmed() {
@@ -97,5 +114,18 @@ public class DogeUser {
 
     public boolean isAdminOrModerator() {
         return this.hasAuthority(DogeRoleLevel.MODERATOR) || this.hasAuthority(DogeRoleLevel.ADMIN);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DogeUser user = (DogeUser) o;
+        return Objects.equals(id, user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

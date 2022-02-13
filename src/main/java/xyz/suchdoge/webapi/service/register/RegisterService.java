@@ -78,8 +78,8 @@ public class RegisterService {
             throw new DogeHttpException("DOGE_USER_ALREADY_ENABLED", HttpStatus.METHOD_NOT_ALLOWED);
         }
 
-        user.getRoles().removeIf(dogeRole -> dogeRole.getLevel().equals(DogeRoleLevel.NOT_CONFIRMED_USER));
-        user.getRoles().add(this.dogeRoleRepository.getByLevel(DogeRoleLevel.USER));
+        user.removeRole(DogeRoleLevel.NOT_CONFIRMED_USER);
+        user.addRole(this.dogeRoleRepository.getByLevel(DogeRoleLevel.USER));
         final DogeUser enabledUser = this.dogeUserRepository.save(user);
 
         this.eventPublisher

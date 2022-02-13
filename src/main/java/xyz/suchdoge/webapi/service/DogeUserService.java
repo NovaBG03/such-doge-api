@@ -155,10 +155,7 @@ public class DogeUserService implements UserDetailsService {
         user.setEmail(newEmail.trim());
 
         // mark user account as not confirmed
-        user.setRoles(user.getRoles()
-                .stream()
-                .filter(dogeRole -> !dogeRole.getLevel().equals(DogeRoleLevel.USER))
-                .collect(Collectors.toSet()));
+        user.removeRole(DogeRoleLevel.USER);
         user.addRole(this.dogeRoleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER));
 
         // validate user and save it to the database

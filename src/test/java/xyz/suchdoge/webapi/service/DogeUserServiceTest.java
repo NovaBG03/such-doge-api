@@ -1,5 +1,6 @@
 package xyz.suchdoge.webapi.service;
 
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -251,7 +252,7 @@ class DogeUserServiceTest {
         DogeUser user = DogeUser.builder()
                 .username(username)
                 .email(oldEmail)
-                .roles(List.of(getRole(DogeRoleLevel.USER)))
+                .roles(Sets.newHashSet(getRole(DogeRoleLevel.USER)))
                 .build();
 
         when(roleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER))
@@ -278,7 +279,7 @@ class DogeUserServiceTest {
         DogeUser user = DogeUser.builder()
                 .username(username)
                 .email(oldEmail)
-                .roles(List.of(getRole(DogeRoleLevel.ADMIN), getRole(DogeRoleLevel.MODERATOR)))
+                .roles(Sets.newHashSet(getRole(DogeRoleLevel.ADMIN), getRole(DogeRoleLevel.MODERATOR)))
                 .build();
 
         when(roleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER))
