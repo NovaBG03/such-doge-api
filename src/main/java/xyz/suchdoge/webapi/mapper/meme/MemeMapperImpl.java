@@ -1,10 +1,16 @@
 package xyz.suchdoge.webapi.mapper.meme;
 
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import xyz.suchdoge.webapi.dto.meme.MemeDataDto;
-import xyz.suchdoge.webapi.dto.meme.MemeMyResponseDto;
+import xyz.suchdoge.webapi.dto.meme.MyMemeResponseDto;
+import xyz.suchdoge.webapi.dto.meme.MemePageResponseDto;
 import xyz.suchdoge.webapi.dto.meme.MemeResponseDto;
 import xyz.suchdoge.webapi.model.Meme;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Component
 public class MemeMapperImpl implements MemeMapper {
@@ -41,12 +47,12 @@ public class MemeMapperImpl implements MemeMapper {
     }
 
     @Override
-    public MemeMyResponseDto memeToMemeMyResponseDto(Meme meme) {
+    public MyMemeResponseDto memeToMemeMyResponseDto(Meme meme) {
         if (meme == null) {
             return null;
         }
 
-        final MemeMyResponseDto memeMyResponseDto = MemeMyResponseDto.builder()
+        final MyMemeResponseDto memeMyResponseDto = MyMemeResponseDto.builder()
                 .id(meme.getId())
                 .title(meme.getTitle())
                 .description(meme.getDescription())
@@ -57,5 +63,30 @@ public class MemeMapperImpl implements MemeMapper {
                 .build();
 
         return memeMyResponseDto;
+    }
+
+    @Override
+    public MemePageResponseDto createMemePageResponseDto(Page<Meme> memes, boolean isAdminOrModerator) {
+        if (memes == null) {
+            return MemePageResponseDto.builder()
+                    .totalCount(memes.getTotalElements())
+                    .build();
+        }
+
+        List<MemeResponseDto> memeResponseDtos;
+        if (isAdminOrModerator) {
+            memeResponseDtos = StreamSupport.stream(memes.spliterator(), false)
+                    .map(this::memeToMemeMyResponseDto).
+                    collect(Collectors.toList());
+        } else {
+            memeResponseDtos = StreamSupport.stream(memes.spliterator(), false)
+                    .map(this::memeToMemeResponseDto).
+                    collect(Collectors.toList());
+        }
+
+        return MemePageResponseDto.builder()
+                .memes(memeResponseDtos)
+                .totalCount(memes.getTotalElements())
+                .build();
     }
 }

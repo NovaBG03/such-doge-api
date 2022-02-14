@@ -1,6 +1,7 @@
 package xyz.suchdoge.webapi.dto.meme;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
@@ -8,7 +9,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 public class MemeResponseDto {
     private Long id;
     private String title;
