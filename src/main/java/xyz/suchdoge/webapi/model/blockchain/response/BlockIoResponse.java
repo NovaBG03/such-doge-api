@@ -1,9 +1,9 @@
-package xyz.suchdoge.webapi.dto.blockIo;
+package xyz.suchdoge.webapi.model.blockchain.response;
 
 import lombok.Getter;
 
 @Getter
-public abstract class BlockIoResponse<T> {
+public class BlockIoResponse<T> {
     private final T data;
     private final Status status;
 
