@@ -76,13 +76,14 @@ public class DogeUserController {
             exceptions.add(e);
         }
 
-        try {
-            if (userInfoDto.getPublicKey() != null) {
-                user = this.dogeUserService.changeDogePublicKey(userInfoDto.getPublicKey(), user);
-            }
-        } catch (DogeHttpException e) {
-            exceptions.add(e);
-        }
+        // todo refactor to only change email
+//        try {
+//            if (userInfoDto.getPublicKey() != null) {
+//                user = this.dogeUserService.changeDogePublicKey(userInfoDto.getPublicKey(), user);
+//            }
+//        } catch (DogeHttpException e) {
+//            exceptions.add(e);
+//        }
 
         return this.userMapper.dogeUserToUserInfoPatchResponseDto(user, exceptions);
     }

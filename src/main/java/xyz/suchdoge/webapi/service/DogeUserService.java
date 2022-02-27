@@ -10,12 +10,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
+import xyz.suchdoge.webapi.model.blockchain.Address;
 import xyz.suchdoge.webapi.model.user.DogeRole;
 import xyz.suchdoge.webapi.model.user.DogeRoleLevel;
 import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.repository.DogeRoleRepository;
 import xyz.suchdoge.webapi.repository.DogeUserRepository;
 import xyz.suchdoge.webapi.security.DogeUserDetails;
+import xyz.suchdoge.webapi.service.blockchain.DogeBlockchainService;
 import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmationNeededEvent;
 import xyz.suchdoge.webapi.service.imageGenerator.ImageGeneratorService;
 import xyz.suchdoge.webapi.service.storage.CloudStorageService;
@@ -23,7 +25,6 @@ import xyz.suchdoge.webapi.service.validator.DogeUserVerifier;
 import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 /**
  * Service for common user operations.
@@ -36,6 +37,7 @@ public class DogeUserService implements UserDetailsService {
     private final DogeRoleRepository dogeRoleRepository;
     private final CloudStorageService cloudStorageService;
     private final ImageGeneratorService imageGeneratorService;
+    private final DogeBlockchainService blockchainService;
     private final DogeUserVerifier dogeUserVerifier;
     private final ModelValidatorService modelValidatorService;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -48,6 +50,7 @@ public class DogeUserService implements UserDetailsService {
                            DogeRoleRepository dogeRoleRepository,
                            CloudStorageService cloudStorageService,
                            ImageGeneratorService imageGeneratorService,
+                           DogeBlockchainService blockchainService,
                            DogeUserVerifier dogeUserVerifier,
                            ModelValidatorService modelValidatorService,
                            ApplicationEventPublisher applicationEventPublisher) {
@@ -56,6 +59,7 @@ public class DogeUserService implements UserDetailsService {
         this.dogeRoleRepository = dogeRoleRepository;
         this.cloudStorageService = cloudStorageService;
         this.imageGeneratorService = imageGeneratorService;
+        this.blockchainService = blockchainService;
         this.dogeUserVerifier = dogeUserVerifier;
         this.modelValidatorService = modelValidatorService;
         this.applicationEventPublisher = applicationEventPublisher;
@@ -134,6 +138,14 @@ public class DogeUserService implements UserDetailsService {
             this.cloudStorageService.upload(profilePic, savedUser.getUsername() + ".png", "user");
         } catch (Exception e) {
             // todo do something when can not generate or save personalized profile pic
+        }
+
+        // create user wallet
+        try {
+            Address address = this.blockchainService.createWallet(savedUser.getUsername());
+            savedUser = this.changeDogePublicKey(address.getAddress(), savedUser);
+        } catch (Exception e) {
+            // todo do something when can not generate user  wallet
         }
 
         return savedUser;

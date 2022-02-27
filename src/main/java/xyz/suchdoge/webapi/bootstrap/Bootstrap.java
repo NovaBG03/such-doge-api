@@ -9,6 +9,7 @@ import xyz.suchdoge.webapi.model.user.DogeRoleLevel;
 import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.repository.DogeRoleRepository;
 import xyz.suchdoge.webapi.repository.DogeUserRepository;
+import xyz.suchdoge.webapi.service.blockchain.DogeBlockchainService;
 import xyz.suchdoge.webapi.service.imageGenerator.ImageGeneratorService;
 import xyz.suchdoge.webapi.service.storage.CloudStorageService;
 
@@ -24,17 +25,20 @@ public class Bootstrap implements CommandLineRunner {
     private final DogeRoleRepository dogeRoleRepository;
     private final ImageGeneratorService imageGeneratorService;
     private final CloudStorageService cloudStorageService;
+    private final DogeBlockchainService blockchainService;
 
     public Bootstrap(PasswordEncoder passwordEncoder,
                      DogeUserRepository dogeUserRepository,
                      DogeRoleRepository dogeRoleRepository,
                      ImageGeneratorService imageGeneratorService,
-                     CloudStorageService cloudStorageService) {
+                     CloudStorageService cloudStorageService,
+                     DogeBlockchainService blockchainService) {
         this.passwordEncoder = passwordEncoder;
         this.dogeUserRepository = dogeUserRepository;
         this.dogeRoleRepository = dogeRoleRepository;
         this.imageGeneratorService = imageGeneratorService;
         this.cloudStorageService = cloudStorageService;
+        this.blockchainService = blockchainService;
     }
 
     @Override
@@ -70,6 +74,7 @@ public class Bootstrap implements CommandLineRunner {
         user.addRole(userRole);
         dogeUserRepository.save(user);
         users.add(user);
+        this.setWallet(user);
 
         DogeUser moderator = DogeUser.builder()
                 .username("moderen")
@@ -79,6 +84,7 @@ public class Bootstrap implements CommandLineRunner {
         moderator.addRoles(Lists.newArrayList(userRole, moderatorRole));
         dogeUserRepository.save(moderator);
         users.add(moderator);
+        this.setWallet(moderator);
 
         DogeUser admin = DogeUser.builder()
                 .username("admin")
@@ -88,13 +94,31 @@ public class Bootstrap implements CommandLineRunner {
         admin.addRoles(Lists.newArrayList(userRole, moderatorRole, adminRole));
         dogeUserRepository.save(admin);
         users.add(admin);
+        this.setWallet(admin);
 
+        users.forEach(u -> {
+            try {
+                cloudStorageService.upload(
+                        imageGeneratorService.generateProfilePic(u.getUsername()),
+                        u.getUsername() + ".png",
+                        "user");
+            } catch (Exception e) {
+            }
+        });
+    }
+
+    private void setWallet(DogeUser user) {
+        String address = "";
         try {
-            users.forEach(u -> cloudStorageService.upload(
-                    imageGeneratorService.generateProfilePic(u.getUsername()),
-                    u.getUsername() + ".png",
-                    "user"));
+            address = this.blockchainService.createWallet(user.getUsername()).getAddress();
         } catch (Exception e) {
+            try {
+                address = this.blockchainService.getWallet(user.getUsername()).getAddress();
+            } catch (Exception e2) {
+            }
         }
+
+        user.setDogePublicKey(address);
+        dogeUserRepository.save(user);
     }
 }

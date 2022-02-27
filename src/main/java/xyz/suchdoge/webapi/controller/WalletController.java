@@ -21,7 +21,7 @@ public class WalletController {
     public void test() throws Exception {
         final Balance appWallet = this.dogeBlockchainService.getBalance();
         // this.dogeBlockchainService.createWallet("test1");
-        // Address address = this.dogeBlockchainService.createWallet("test3");
+        Address address = this.dogeBlockchainService.createWallet("ivan");
         Wallet wallet = this.dogeBlockchainService.getWallet("default");
     }
 }

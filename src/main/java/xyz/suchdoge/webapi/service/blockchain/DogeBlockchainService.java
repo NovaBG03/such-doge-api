@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lib.blockIo.BlockIo;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
@@ -17,13 +18,16 @@ public class DogeBlockchainService {
     private final BlockIo blockIo;
     private final ObjectMapper objectMapper;
 
+    @Value("${BLOCK_IO_APP_WALLET_LABEL}")
+    private String appWalletLabel;
+
     public DogeBlockchainService(@Qualifier("dogeBlockIo") BlockIo blockIo, ObjectMapper objectMapper) {
         this.blockIo = blockIo;
         this.objectMapper = objectMapper;
     }
 
     /**
-     * @return Returns the sum of balances of all addresses/users.
+     * @return sum of balances of all addresses/users.
      * @throws Exception when can not get the balance.
      */
     public Balance getBalance() throws Exception {
@@ -34,7 +38,7 @@ public class DogeBlockchainService {
     }
 
     /**
-     * @return Returns a newly generated doge coin address.
+     * @return newly generated doge coin address.
      * @throws Exception when can not create new address.
      */
     public Address createWallet() throws Exception {
@@ -47,7 +51,7 @@ public class DogeBlockchainService {
 
     /**
      * @param label will be used to associate user with the address.
-     * @return Returns a newly generated doge coin address.
+     * @return newly generated doge coin address.
      * @throws Exception when can not create new address.
      */
     public Address createWallet(String label) throws Exception {
@@ -59,12 +63,25 @@ public class DogeBlockchainService {
         return addressResponse.getData();
     }
 
+    /**
+     * @param label of the wallet to get
+     * @return a doge coin address related to the label
+     * @throws Exception when can not get the address.
+     */
     public Wallet getWallet(String label) throws Exception {
         final JSONObject params = new JSONObject(Map.of("label", label));
         String jsonResponse = this.blockIo.GetAddressByLabel(params).toString();
         this.checkForErrors(jsonResponse, "CAN_NOT_GET_ADDRESS");
         WalletResponse walletResponse = this.objectMapper.readValue(jsonResponse, WalletResponse.class);
         return walletResponse.getData();
+    }
+
+    /**
+     * @return the application doge coin address
+     * @throws Exception when can not get the address.
+     */
+    public Wallet getAppWallet() throws Exception {
+        return this.getWallet(this.appWalletLabel);
     }
 
     private void checkForErrors(String jsonResponse, String defaultMessage) throws Exception {

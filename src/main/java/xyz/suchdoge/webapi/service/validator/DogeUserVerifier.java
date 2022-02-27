@@ -1,6 +1,7 @@
 package xyz.suchdoge.webapi.service.validator;
 
 import com.google.common.base.Strings;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
@@ -18,6 +19,9 @@ public class DogeUserVerifier {
 
     private final DogeUserRepository dogeUserRepository;
     private final EmailVerifier emailVerifier;
+
+    @Value("${BLOCK_IO_APP_WALLET_LABEL}")
+    private String appWalletLabel;
 
     /**
      * Constructs a UserVerifier with needed dependencies
@@ -41,6 +45,10 @@ public class DogeUserVerifier {
 
         if (dogeUserRepository.existsByUsername(username.trim())) {
             throw new DogeHttpException("DOGE_USER_USERNAME_EXISTS", HttpStatus.BAD_REQUEST);
+        }
+
+        if (username.trim().equals(this.appWalletLabel)) {
+            throw new DogeHttpException("DOGE_USER_USERNAME_INVALID", HttpStatus.BAD_REQUEST);
         }
     }
 

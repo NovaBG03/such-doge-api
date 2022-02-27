@@ -19,11 +19,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
+import xyz.suchdoge.webapi.model.blockchain.Address;
+import xyz.suchdoge.webapi.model.blockchain.Network;
 import xyz.suchdoge.webapi.model.user.DogeRole;
 import xyz.suchdoge.webapi.model.user.DogeRoleLevel;
 import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.repository.DogeRoleRepository;
 import xyz.suchdoge.webapi.repository.DogeUserRepository;
+import xyz.suchdoge.webapi.service.blockchain.DogeBlockchainService;
 import xyz.suchdoge.webapi.service.imageGenerator.ImageGeneratorService;
 import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmationNeededEvent;
 import xyz.suchdoge.webapi.service.storage.CloudStorageService;
@@ -49,6 +52,8 @@ class DogeUserServiceTest {
     @Mock()
     ImageGeneratorService imageGeneratorService;
     @Mock()
+    DogeBlockchainService blockchainService;
+    @Mock()
     DogeUserVerifier userVerifier;
     @Mock()
     ModelValidatorService modelValidatorService;
@@ -66,6 +71,7 @@ class DogeUserServiceTest {
                 roleRepository,
                 cloudStorageService,
                 imageGeneratorService,
+                blockchainService,
                 userVerifier,
                 modelValidatorService,
                 applicationEventPublisher);
@@ -149,10 +155,13 @@ class DogeUserServiceTest {
 
     @Test
     @DisplayName("Should create new user successfully")
-    void shouldCreateNewUserSuccessfully() {
+    void shouldCreateNewUserSuccessfully() throws Exception {
         String email = "test@abv.bg";
         String password = "test";
         byte[] generatedImageBytes = new byte[100];
+        String publicKey = "address";
+        Network addressNetwork = Network.DOGETEST;
+        Address address = new Address(publicKey, 4L, username, addressNetwork.toString());
 
         when(roleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER))
                 .thenReturn(getRole(DogeRoleLevel.NOT_CONFIRMED_USER));
@@ -163,17 +172,22 @@ class DogeUserServiceTest {
         when(imageGeneratorService.generateProfilePic(username))
                 .thenReturn(generatedImageBytes);
 
+        when(blockchainService.createWallet(username))
+                .thenReturn(address);
+
         DogeUser user = userService.createUser(username, email, password);
 
         assertEquals(username, user.getUsername());
         assertEquals(email, user.getEmail());
         assertTrue(passwordEncoder.matches(password, user.getEncodedPassword()));
         assertFalse(user.isConfirmed());
+        assertEquals(publicKey, user.getDogePublicKey());
         verify(userVerifier, times(1)).verifyUsername(username);
         verify(userVerifier, times(1)).verifyEmail(email);
         verify(userVerifier, times(1)).verifyPassword(password);
-        verify(modelValidatorService, times(1)).validate(any(DogeUser.class));
-        verify(userRepository, times(1)).save(any(DogeUser.class));
+        verify(userVerifier, times(1)).verifyDogePublicKey(publicKey);
+        verify(modelValidatorService, atLeast(1)).validate(any(DogeUser.class));
+        verify(userRepository, atLeast(1)).save(any(DogeUser.class));
         verify(imageGeneratorService, times(1)).generateProfilePic(username);
         verify(cloudStorageService, times(1)).upload(generatedImageBytes, username + ".png", "user");
     }
