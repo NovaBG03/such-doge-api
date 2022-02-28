@@ -2,8 +2,6 @@ package xyz.suchdoge.webapi.dto.blockchain;
 
 import lombok.*;
 
-import java.math.BigDecimal;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -11,7 +9,7 @@ import java.math.BigDecimal;
 @Builder
 public class BalanceResponseDto {
     private String address;
-    private BigDecimal availableBalance;
-    private BigDecimal pendingReceivedBalance;
+    private Double availableBalance;
+    private Double pendingReceivedBalance;
     private String network;
 }
