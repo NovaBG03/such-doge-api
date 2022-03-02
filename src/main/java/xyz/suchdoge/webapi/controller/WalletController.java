@@ -1,14 +1,8 @@
 package xyz.suchdoge.webapi.controller;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import xyz.suchdoge.webapi.dto.blockchain.BalanceResponseDto;
-import xyz.suchdoge.webapi.dto.blockchain.CalculateFeeDto;
-import xyz.suchdoge.webapi.dto.blockchain.NetworkFeeResponseDto;
-import xyz.suchdoge.webapi.dto.blockchain.TransactionRequirementsResponseDto;
+import org.springframework.web.bind.annotation.*;
+import xyz.suchdoge.webapi.dto.blockchain.*;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.mapper.blockchain.BlockchainMapper;
 import xyz.suchdoge.webapi.model.blockchain.TransactionPriority;
@@ -48,6 +42,13 @@ public class WalletController {
             throw new DogeHttpException("CAN_NOT_GET_ADDRESS", HttpStatus.BAD_REQUEST);
         }
         return this.blockchainMapper.walletToBalanceResponseDto(wallet);
+    }
+
+    @GetMapping("validate")
+    public ValidatedAddressResponseDto validateAddress(@RequestParam(name = "address") String address) throws Exception {
+        return this.blockchainMapper.validatedAddressToValidatedAddressDto(
+                this.dogeBlockchainService.validateAddress(address)
+        );
     }
 
     @GetMapping("transaction/fee")

@@ -110,6 +110,15 @@ public class DogeBlockchainService {
                 .build();
     }
 
+    public ValidatedAddress validateAddress(String address) throws Exception {
+        final JSONObject params = new JSONObject(Map.of("address", address));
+        String jsonResponse = this.blockIo.IsValidAddress(params).toString();
+        this.checkForErrors(jsonResponse, "CAN_NOT_VALIDATE_ADDRESS");
+        ValidatedAddressResponse validatedAddressResponse =
+                this.objectMapper.readValue(jsonResponse, ValidatedAddressResponse.class);
+        return validatedAddressResponse.getData();
+    }
+
 //    public void prepareTransaction(String amount, String fromLabel, String toLabel) throws Exception {
 //        final JSONObject params = new JSONObject(Map.of(
 //                "amounts", amount,
