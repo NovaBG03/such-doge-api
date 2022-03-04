@@ -1,9 +1,9 @@
 package xyz.suchdoge.webapi.model.blockchain.response;
 
-import xyz.suchdoge.webapi.model.blockchain.NetworkFee;
+import xyz.suchdoge.webapi.model.blockchain.TransactionFee;
 
-public class NetworkFeeResponse extends BlockIoResponse<NetworkFee> {
-    public NetworkFeeResponse(NetworkFee data, String status) {
+public class NetworkFeeResponse extends BlockIoResponse<TransactionFee> {
+    public NetworkFeeResponse(TransactionFee data, String status) {
         super(data, status);
     }
 }

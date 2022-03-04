@@ -7,11 +7,8 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class NetworkFeeResponseDto {
+public class SummarizedTransactionResponseDto {
     private Double additionalFee;
-    private Double maxCustomNetworkFee;
-    private Double minCustomNetworkFee;
+    private Double totalAmountToSend;
     private Double networkFee;
-    private Long transactionSize;
-    private String network;
 }

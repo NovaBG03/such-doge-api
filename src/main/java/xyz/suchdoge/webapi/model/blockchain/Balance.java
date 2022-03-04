@@ -5,10 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 @Getter
-public class Balance {
+public class Balance extends BlockchainObject {
     private final Double availableBalance;
     private final Double pendingReceivedBalance;
-    private final Network network;
 
     @JsonCreator
     public Balance(
@@ -16,8 +15,8 @@ public class Balance {
             @JsonProperty("pending_received_balance") Double pendingReceivedBalance,
             @JsonProperty("network") String network
     ) {
+        super(network);
         this.availableBalance = availableBalance;
         this.pendingReceivedBalance = pendingReceivedBalance;
-        this.network = Network.valueOf(network);
     }
 }

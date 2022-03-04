@@ -110,10 +110,10 @@ public class Bootstrap implements CommandLineRunner {
     private void setWallet(DogeUser user) {
         String address = "";
         try {
-            address = this.blockchainService.createWallet(user.getUsername()).getAddress();
+            address = this.blockchainService.createWallet(user.getUsername()).getValue();
         } catch (Exception e) {
             try {
-                address = this.blockchainService.getWallet(user.getUsername()).getAddress();
+                address = this.blockchainService.getWallet(user.getUsername()).getAddress().getValue();
             } catch (Exception e2) {
             }
         }

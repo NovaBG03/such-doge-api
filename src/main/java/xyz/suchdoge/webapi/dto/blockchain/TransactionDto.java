@@ -9,8 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CalculateFeeDto {
+public class TransactionDto {
     Double amount;
-    String receiverUsername;
     String priority;
 }
