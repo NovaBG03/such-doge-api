@@ -57,18 +57,21 @@ public class WalletController {
         return this.blockchainMapper.walletToBalanceResponseDto(wallet);
     }
 
-    @GetMapping("validate")
+    @GetMapping("/validate")
     public ValidatedAddressResponseDto validateAddress(@RequestParam(name = "address") String address) throws Exception {
         return this.blockchainMapper.validatedAddressToValidatedAddressResponseDto(
                 this.dogeBlockchainService.validateAddress(address)
         );
     }
 
-    @GetMapping("transaction/fee")
-    public TransactionFeeResponseDto getEstimatedTransactionFee(
-            @RequestParam String receiverUsername,
-            @RequestBody TransactionDto transactionDto
-    ) throws Exception {
+    @GetMapping("/transaction/requirements")
+    public TransactionRequirementsResponseDto getTransactionRequirements() {
+        return this.dogeBlockchainService.getTransactionRequirements();
+    }
+
+    @PostMapping("/transaction/fee")
+    public TransactionFeeResponseDto getEstimatedTransactionFee(@RequestParam String receiverUsername,
+                                                                @RequestBody TransactionDto transactionDto) throws Exception {
         // todo validate user with provided username exists
         TransactionFee transactionFee = this.dogeBlockchainService.calculateTransactionFee(
                 transactionDto.getAmount(),
@@ -77,12 +80,7 @@ public class WalletController {
         return this.blockchainMapper.transactionFeeToTransactionFeeResponseDto(transactionFee);
     }
 
-    @GetMapping("transaction/requirements")
-    public TransactionRequirementsResponseDto getTransactionRequirements() {
-        return this.dogeBlockchainService.getTransactionRequirements();
-    }
-
-    @GetMapping("transaction/donation")
+    @PostMapping("/transaction/summarized")
     public SummarizedTransactionResponseDto summarizeDonation(@RequestParam Long memeId,
                                                               @RequestBody TransactionDto transactionDto,
                                                               Principal principal) throws Exception {
@@ -95,7 +93,7 @@ public class WalletController {
         return this.blockchainMapper.summarizedTransactionToSummarizedTransactionResponseDto(summarizedTransaction);
     }
 
-    @PostMapping("transaction/donation")
+    @PostMapping("/transaction/donation")
     public void donate() throws Exception {
         PreparedTransaction preparedTransaction = this.dogeBlockchainService
                 .prepareTransaction(10d, "nova", "ivan", TransactionPriority.LOW);
