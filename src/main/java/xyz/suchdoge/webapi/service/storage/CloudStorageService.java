@@ -8,9 +8,9 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @Service
 public class CloudStorageService {
     private final S3Client s3Client;
-    private final AwsStorageConfig awsConfig;
+    private final AwsStorageProps awsConfig;
 
-    public CloudStorageService(S3Client s3Client, AwsStorageConfig awsConfig) {
+    public CloudStorageService(S3Client s3Client, AwsStorageProps awsConfig) {
         this.s3Client = s3Client;
         this.awsConfig = awsConfig;
     }

@@ -146,6 +146,7 @@ public class DogeUserService implements UserDetailsService {
             savedUser = this.changeDogePublicKey(address.getValue(), savedUser);
         } catch (Exception e) {
             // todo do something when can not generate user  wallet
+            // get wallet if already exists one
         }
 
         return savedUser;

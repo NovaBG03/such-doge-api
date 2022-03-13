@@ -9,7 +9,7 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import xyz.suchdoge.webapi.service.jwt.JwtConfig;
+import xyz.suchdoge.webapi.service.jwt.JwtProps;
 import xyz.suchdoge.webapi.service.jwt.JwtService;
 
 @Order(Ordered.HIGHEST_PRECEDENCE + 99)
@@ -17,12 +17,12 @@ import xyz.suchdoge.webapi.service.jwt.JwtService;
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final JwtService jwtService;
-    private final JwtConfig jwtConfig;
+    private final JwtProps jwtConfig;
 
     @Value("${SUCHDOGE_DOMAIN_URL}")
     private String domainUrl;
 
-    public WebSocketConfig(JwtService jwtService, JwtConfig jwtConfig) {
+    public WebSocketConfig(JwtService jwtService, JwtProps jwtConfig) {
         this.jwtService = jwtService;
         this.jwtConfig = jwtConfig;
     }

@@ -24,7 +24,7 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final DogeUserService dogeUserService;
     private final HashingService hashingService;
-    private final JwtConfig jwtConfig;
+    private final JwtProps jwtConfig;
     private final JwtService jwtService;
     private final ModelValidatorService modelValidatorService;
     private final ApplicationEventPublisher eventPublisher;
@@ -32,7 +32,7 @@ public class RefreshTokenService {
     public RefreshTokenService(RefreshTokenRepository refreshTokenRepository,
                                DogeUserService dogeUserService,
                                HashingService hashingService,
-                               JwtConfig jwtConfig,
+                               JwtProps jwtConfig,
                                JwtService jwtService,
                                ModelValidatorService modelValidatorService,
                                ApplicationEventPublisher eventPublisher) {
@@ -73,7 +73,7 @@ public class RefreshTokenService {
     }
 
     public void setRefreshTokenHeader(HttpServletResponse response, String token) {
-        final String headerValue = jwtConfig.getRefreshTokenPrefix() + token;
+        final String headerValue = jwtConfig.getRefreshTokenPrefix() + " " + token;
 
         response.addHeader("Access-Control-Expose-Headers", jwtConfig.getRefreshTokenHeader());
         response.setHeader(jwtConfig.getRefreshTokenHeader(), headerValue);

@@ -22,14 +22,14 @@ public class RegisterService {
     private final EmailConfirmationTokenService emailConfirmationTokenService;
     private final EmailService emailService;
     private final ApplicationEventPublisher eventPublisher;
-    private final RegisterConfig registerConfig;
+    private final RegisterProps registerConfig;
 
     public RegisterService(DogeRoleRepository dogeRoleRepository,
                            DogeUserRepository dogeUserRepository,
                            DogeUserService dogeUserService,
                            EmailConfirmationTokenService emailConfirmationTokenService,
                            EmailService emailService, ApplicationEventPublisher eventPublisher,
-                           RegisterConfig registerConfig) {
+                           RegisterProps registerConfig) {
         this.dogeRoleRepository = dogeRoleRepository;
         this.dogeUserRepository = dogeUserRepository;
         this.dogeUserService = dogeUserService;

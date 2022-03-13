@@ -6,9 +6,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class BlockIoClientConfig {
-    private final BlockIoConfig config;
+    private final BlockIoProps config;
 
-    public BlockIoClientConfig(BlockIoConfig blockIoConfig) {
+    public BlockIoClientConfig(BlockIoProps blockIoConfig) {
         this.config = blockIoConfig;
     }
 

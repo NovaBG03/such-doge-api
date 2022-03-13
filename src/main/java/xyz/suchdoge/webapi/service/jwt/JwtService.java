@@ -25,26 +25,26 @@ import java.util.stream.Collectors;
 public class JwtService {
     private final UserDetailsService userDetailsService;
     private final SecretKey secretKey;
-    private final JwtConfig jwtConfig;
+    private final JwtProps jwtConfig;
 
-    public JwtService(UserDetailsService userDetailsService, SecretKey secretKey, JwtConfig jwtConfig) {
+    public JwtService(UserDetailsService userDetailsService, SecretKey secretKey, JwtProps jwtConfig) {
         this.userDetailsService = userDetailsService;
         this.secretKey = secretKey;
         this.jwtConfig = jwtConfig;
     }
 
     public Authentication getAuthentication(HttpServletRequest request) {
-        String authorizationToken = request.getHeader(jwtConfig.getAuthorizationHeader());
+        String authorizationToken = request.getHeader(jwtConfig.getAuthTokenHeader());
         return this.getAuthentication(authorizationToken);
     }
 
     // authorizationToken = prefix + token
     public Authentication getAuthentication(String authorizationToken) {
-        if (Strings.isNullOrEmpty(authorizationToken) || !authorizationToken.startsWith(jwtConfig.getTokenPrefix())) {
+        if (Strings.isNullOrEmpty(authorizationToken) || !authorizationToken.startsWith(jwtConfig.getAuthTokenPrefix())) {
             return null;
         }
 
-        String token = authorizationToken.replace(jwtConfig.getTokenPrefix(), "");
+        String token = authorizationToken.replace(jwtConfig.getAuthTokenPrefix(), "").strip();
         if (Strings.isNullOrEmpty(token)) {
             return null;
         }
@@ -80,7 +80,7 @@ public class JwtService {
                 .setSubject(userDetails.getUsername())
                 .claim("authorities", userDetails.getAuthorities())
                 .setIssuedAt(new Date())
-                .setExpiration(Date.from(Instant.now().plusSeconds(jwtConfig.getTokenExpirationSeconds())))
+                .setExpiration(Date.from(Instant.now().plusSeconds(jwtConfig.getAuthTokenExpirationSeconds())))
                 .signWith(secretKey)
                 .compact();
     }
@@ -91,8 +91,7 @@ public class JwtService {
     }
 
     public void setAuthorizationResponseHeader(HttpServletResponse response, String jwt) {
-        // todo add cors header
-        response.addHeader("Access-Control-Expose-Headers", jwtConfig.getAuthorizationHeader());
-        response.setHeader(jwtConfig.getAuthorizationHeader(), jwtConfig.getTokenPrefix() + jwt);
+        response.addHeader("Access-Control-Expose-Headers", jwtConfig.getAuthTokenHeader());
+        response.setHeader(jwtConfig.getAuthTokenHeader(), jwtConfig.getAuthTokenPrefix() + " " + jwt);
     }
 }

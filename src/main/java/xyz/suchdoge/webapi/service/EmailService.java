@@ -8,26 +8,26 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.model.user.DogeUser;
-import xyz.suchdoge.webapi.service.register.RegisterConfig;
+import xyz.suchdoge.webapi.service.register.RegisterProps;
 import xyz.suchdoge.webapi.service.validator.EmailVerifier;
 
 @Service
 public class EmailService {
     private final JavaMailSender mailSender;
     private final EmailVerifier emailVerifier;
-    private final RegisterConfig registerConfig;
+    private final RegisterProps registerConfig;
 
     @Value("${spring.mail.username}")
     private String businessEmail;
 
-    public EmailService(JavaMailSender mailSender, EmailVerifier emailVerifier, RegisterConfig registerConfig) {
+    public EmailService(JavaMailSender mailSender, EmailVerifier emailVerifier, RegisterProps registerConfig) {
         this.mailSender = mailSender;
         this.emailVerifier = emailVerifier;
         this.registerConfig = registerConfig;
     }
 
     public void sendToken(DogeUser user, String confirmationToken) {
-        final String registerUrl = registerConfig.tokenActivationWebUrl + "/" + confirmationToken;
+        final String registerUrl = registerConfig.tokenActivationUrl + "/" + confirmationToken;
         final String subject = "Activate your SuchDoge account";
         final String content = "To activate your SuchDoge account click here: " + registerUrl;
 

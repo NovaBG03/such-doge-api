@@ -16,10 +16,10 @@ import java.io.IOException;
 
 @Component
 public class ImageGeneratorService {
-    private final ImageGeneratorConfig config;
+    private final ImageGeneratorProps config;
     private final RestTemplate restTemplate;
 
-    public ImageGeneratorService(ImageGeneratorConfig imageGeneratorConfig, RestTemplate restTemplate) {
+    public ImageGeneratorService(ImageGeneratorProps imageGeneratorConfig, RestTemplate restTemplate) {
         this.config = imageGeneratorConfig;
         this.restTemplate = restTemplate;
     }

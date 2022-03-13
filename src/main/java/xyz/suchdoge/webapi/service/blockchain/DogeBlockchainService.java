@@ -21,11 +21,11 @@ import java.util.Map;
 public class DogeBlockchainService {
     private final BlockIo blockIo;
     private final ObjectMapper objectMapper;
-    private final DogeConstantsConfig dogeConstantsConfig;
+    private final DogeBlockchainProps dogeConstantsConfig;
 
     public DogeBlockchainService(@Qualifier("dogeBlockIo") BlockIo blockIo,
                                  ObjectMapper objectMapper,
-                                 DogeConstantsConfig dogeConstantsConfig) {
+                                 DogeBlockchainProps dogeConstantsConfig) {
         this.blockIo = blockIo;
         this.objectMapper = objectMapper;
         this.dogeConstantsConfig = dogeConstantsConfig;
@@ -48,6 +48,7 @@ public class DogeBlockchainService {
      * @throws Exception when can not create new address.
      */
     public Address createWallet(String label) throws Exception {
+        // todo throw WalletAlreadyExistsException
         final JSONObject params = new JSONObject(Map.of("label", label));
         String jsonResponse = this.blockIo.GetNewAddress(params).toString();
         this.checkForErrors(jsonResponse, "CAN_NOT_CREATE_NEW_ADDRESS");

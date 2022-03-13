@@ -61,7 +61,6 @@ public class DogeUser {
     )
     private Collection<DogeRole> roles = Sets.newHashSet();
 
-    // TODO add validation for doge public key
     @Column()
     private String dogePublicKey;
 

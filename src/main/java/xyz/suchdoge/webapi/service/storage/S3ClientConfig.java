@@ -10,9 +10,9 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
 public class S3ClientConfig {
-    private final AwsStorageConfig awsConfig;
+    private final AwsStorageProps awsConfig;
 
-    public S3ClientConfig(AwsStorageConfig awsConfig) {
+    public S3ClientConfig(AwsStorageProps awsConfig) {
         this.awsConfig = awsConfig;
     }
 

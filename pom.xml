@@ -15,8 +15,9 @@
     <description>SuchDoge Web API</description>
     <properties>
         <java.version>11</java.version>
-        <org.projectlombok.version>1.18.20</org.projectlombok.version>
+        <projectlombok.version>1.18.20</projectlombok.version>
         <batik.codec.version>1.14</batik.codec.version>
+        <spring-boot-configuration-processor.version>2.5.0</spring-boot-configuration-processor.version>
     </properties>
 
     <dependencyManagement>
@@ -70,6 +71,13 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <version>${spring-boot-configuration-processor.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
@@ -84,7 +92,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${org.projectlombok.version}</version>
+            <version>${projectlombok.version}</version>
             <optional>true</optional>
         </dependency>
 
@@ -187,7 +195,12 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>${org.projectlombok.version}</version>
+                            <version>${projectlombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                            <version>${spring-boot-configuration-processor.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

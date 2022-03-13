@@ -20,12 +20,12 @@ import java.util.stream.Collectors;
 
 @Service
 public class EmailConfirmationTokenService {
-    private final RegisterConfig registerConfig;
+    private final RegisterProps registerConfig;
     private final EmailConfirmationTokenRepository emailConfirmationTokenRepository;
     private final ModelValidatorService modelValidatorService;
     private final HashingService hashingService;
 
-    public EmailConfirmationTokenService(RegisterConfig registerConfig,
+    public EmailConfirmationTokenService(RegisterProps registerConfig,
                                          EmailConfirmationTokenRepository emailConfirmationTokenRepository,
                                          ModelValidatorService modelValidatorService,
                                          HashingService hashingService) {
