@@ -82,7 +82,7 @@ public class DogeBlockchainService {
     public TransactionFee calculateTransactionFee(Double amount, String toLabel, TransactionPriority priority) throws Exception {
         this.validateTransactionAmount(amount);
         final JSONObject params = new JSONObject(Map.of(
-                "amounts", amount.toString() + "," + calculateAdditionalFee(amount),
+                "amounts", String.format("%.8f", amount) + "," + String.format("%.8f", calculateAdditionalFee(amount)),
                 "to_labels", toLabel + "," + this.dogeBlockchainProps.getAppWalletLabel(),
                 "priority", priority.toString().toLowerCase()
         ));
@@ -121,7 +121,7 @@ public class DogeBlockchainService {
     public PreparedTransaction prepareTransaction(Double amount, String fromLabel, String toLabel, TransactionPriority priority)
             throws Exception {
         final JSONObject params = new JSONObject(Map.of(
-                "amounts", amount + "," + this.calculateAdditionalFee(amount),
+                "amounts", String.format("%.8f", amount) + "," + String.format("%.8f", this.calculateAdditionalFee(amount)),
                 "from_labels", fromLabel + "," + fromLabel,
                 "to_labels", toLabel + "," + this.dogeBlockchainProps.getAppWalletLabel(),
                 "priority", priority.toString().toLowerCase()
@@ -170,11 +170,18 @@ public class DogeBlockchainService {
             if (errMessage.startsWith("Invalid value for parameter AMOUNTS provided.")) {
                 throw new DogeHttpException("TRANSACTION_AMOUNT_INVALID", HttpStatus.BAD_REQUEST);
             }
+            if (errMessage.contains("Maximum withdrawable balance is")) {
+                TransactionFeeError transactionFeeError = this.objectMapper
+                        .readValue(jsonResponse, TransactionFeeErrorResponse.class).getData();
+                final Double maxWithdrawalBalance = transactionFeeError.getMaxWithdrawalFee();
+                throw new DogeHttpException(
+                        "MAX_TRANSACTION_AMOUNT_IS_" + String.format("%.8f", maxWithdrawalBalance),
+                        HttpStatus.BAD_REQUEST);
+            }
 
             throw new DogeHttpException(defaultMessage, HttpStatus.BAD_REQUEST);
         }
     }
-
 
     public void validateTransactionAmount(Double amount) {
         if (amount < this.dogeBlockchainProps.getMinTransactionAmount()) {
