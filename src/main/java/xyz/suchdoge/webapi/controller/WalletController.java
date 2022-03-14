@@ -10,6 +10,7 @@ import xyz.suchdoge.webapi.model.blockchain.TransactionPriority;
 import xyz.suchdoge.webapi.model.blockchain.TransactionFee;
 import xyz.suchdoge.webapi.model.blockchain.Wallet;
 import xyz.suchdoge.webapi.model.blockchain.transaction.SignedTransaction;
+import xyz.suchdoge.webapi.model.blockchain.transaction.SubmittedTransaction;
 import xyz.suchdoge.webapi.model.blockchain.transaction.SummarizedTransaction;
 import xyz.suchdoge.webapi.service.TransactionService;
 import xyz.suchdoge.webapi.service.blockchain.DogeBlockchainService;
@@ -40,7 +41,7 @@ public class WalletController {
                 this.dogeBlockchainService.summarizePreparedTransaction(preparedTransaction);
 
         SignedTransaction singedTransaction = this.dogeBlockchainService.signTransaction(preparedTransaction);
-        String submittedTransaction = this.dogeBlockchainService.submitTransaction(singedTransaction);
+        SubmittedTransaction submittedTransaction = this.dogeBlockchainService.submitTransaction(singedTransaction);
     }
 
     @GetMapping
@@ -69,7 +70,7 @@ public class WalletController {
         return this.dogeBlockchainService.getTransactionRequirements();
     }
 
-    @PostMapping("/transaction/fee")
+    @PostMapping("/transaction/estimatedFee")
     public TransactionFeeResponseDto getEstimatedTransactionFee(@RequestParam String receiverUsername,
                                                                 @RequestBody TransactionDto transactionDto) throws Exception {
         // todo validate user with provided username exists
@@ -94,13 +95,15 @@ public class WalletController {
     }
 
     @PostMapping("/transaction/donation")
-    public void donate() throws Exception {
-        PreparedTransaction preparedTransaction = this.dogeBlockchainService
-                .prepareTransaction(10d, "nova", "ivan", TransactionPriority.LOW);
+    public SubmittedTransactionResponseDto donate(@RequestParam Long memeId,
+                       @RequestBody TransactionDto transactionDto,
+                       Principal principal) throws Exception {
+        SubmittedTransaction submittedTransaction = this.transactionService.donate(
+                transactionDto.getAmount(),
+                principal.getName(),
+                memeId,
+                TransactionPriority.valueOf(transactionDto.getPriority().toUpperCase()));
 
-        SignedTransaction singedTransaction = this.dogeBlockchainService.signTransaction(preparedTransaction);
-
-        String submittedTransaction = this.dogeBlockchainService.submitTransaction(singedTransaction);
+        return this.blockchainMapper.submittedTransactionToSubmittedTransactionResponseDto(submittedTransaction);
     }
-
 }

@@ -13,6 +13,7 @@ import xyz.suchdoge.webapi.model.blockchain.*;
 import xyz.suchdoge.webapi.model.blockchain.response.*;
 import xyz.suchdoge.webapi.model.blockchain.transaction.PreparedTransaction;
 import xyz.suchdoge.webapi.model.blockchain.transaction.SignedTransaction;
+import xyz.suchdoge.webapi.model.blockchain.transaction.SubmittedTransaction;
 import xyz.suchdoge.webapi.model.blockchain.transaction.SummarizedTransaction;
 
 import java.util.Map;
@@ -21,14 +22,14 @@ import java.util.Map;
 public class DogeBlockchainService {
     private final BlockIo blockIo;
     private final ObjectMapper objectMapper;
-    private final DogeBlockchainProps dogeConstantsConfig;
+    private final DogeBlockchainProps dogeBlockchainProps;
 
     public DogeBlockchainService(@Qualifier("dogeBlockIo") BlockIo blockIo,
                                  ObjectMapper objectMapper,
-                                 DogeBlockchainProps dogeConstantsConfig) {
+                                 DogeBlockchainProps dogeBlockchainProps) {
         this.blockIo = blockIo;
         this.objectMapper = objectMapper;
-        this.dogeConstantsConfig = dogeConstantsConfig;
+        this.dogeBlockchainProps = dogeBlockchainProps;
     }
 
     /**
@@ -75,16 +76,17 @@ public class DogeBlockchainService {
      * @throws Exception when can not get the address.
      */
     public Wallet getAppWallet() throws Exception {
-        return this.getWallet(this.dogeConstantsConfig.getAppWalletLabel());
+        return this.getWallet(this.dogeBlockchainProps.getAppWalletLabel());
     }
 
     public TransactionFee calculateTransactionFee(Double amount, String toLabel, TransactionPriority priority) throws Exception {
         this.validateTransactionAmount(amount);
         final JSONObject params = new JSONObject(Map.of(
-                "amounts", amount.toString(),
-                "to_labels", toLabel,
+                "amounts", amount.toString() + "," + calculateAdditionalFee(amount),
+                "to_labels", toLabel + "," + this.dogeBlockchainProps.getAppWalletLabel(),
                 "priority", priority.toString().toLowerCase()
         ));
+        System.out.println(params);
         String jsonResponse = this.blockIo.GetNetworkFeeEstimate(params).toString();
         this.checkForErrors(jsonResponse, "CAN_NOT_CALCULATE_NETWORK_FEE");
         NetworkFeeResponse networkFeeResponse = this.objectMapper.readValue(jsonResponse, NetworkFeeResponse.class);
@@ -95,14 +97,14 @@ public class DogeBlockchainService {
     }
 
     public Double calculateAdditionalFee(Double transactionAmount) {
-        return transactionAmount * this.dogeConstantsConfig.getTransactionFeePercent() / 100d;
+        return transactionAmount * this.dogeBlockchainProps.getTransactionFeePercent() / 100d;
     }
 
     public TransactionRequirementsResponseDto getTransactionRequirements() {
         return TransactionRequirementsResponseDto.builder()
-                .minTransactionAmount(this.dogeConstantsConfig.getMinTransactionAmount())
-                .maxTransactionAmount(this.dogeConstantsConfig.getMaxTransactionAmount())
-                .transactionFeePercent(this.dogeConstantsConfig.getTransactionFeePercent())
+                .minTransactionAmount(this.dogeBlockchainProps.getMinTransactionAmount())
+                .maxTransactionAmount(this.dogeBlockchainProps.getMaxTransactionAmount())
+                .transactionFeePercent(this.dogeBlockchainProps.getTransactionFeePercent())
                 .network(Network.DOGETEST.toString())
                 .build();
     }
@@ -119,9 +121,9 @@ public class DogeBlockchainService {
     public PreparedTransaction prepareTransaction(Double amount, String fromLabel, String toLabel, TransactionPriority priority)
             throws Exception {
         final JSONObject params = new JSONObject(Map.of(
-                "amounts", amount.toString(),
-                "from_labels", fromLabel,
-                "to_labels", toLabel,
+                "amounts", amount + "," + this.calculateAdditionalFee(amount),
+                "from_labels", fromLabel + "," + fromLabel,
+                "to_labels", toLabel + "," + this.dogeBlockchainProps.getAppWalletLabel(),
                 "priority", priority.toString().toLowerCase()
         ));
         JSONObject jsonObjResponse = this.blockIo.PrepareTransaction(params);
@@ -139,13 +141,15 @@ public class DogeBlockchainService {
         return this.objectMapper.readValue(jsonResponse, SignedTransaction.class);
     }
 
-    public String submitTransaction(SignedTransaction signedTransaction) throws Exception {
+    public SubmittedTransaction submitTransaction(SignedTransaction signedTransaction) throws Exception {
         final String singedTransactionStr = this.objectMapper.writeValueAsString(signedTransaction);
         final JSONObject singedTransactionJSONObject = (JSONObject) new JSONParser().parse(singedTransactionStr);
         final JSONObject params = new JSONObject(Map.of("transaction_data", singedTransactionJSONObject));
         String jsonResponse = blockIo.SubmitTransaction(params).toString();
         this.checkForErrors(jsonResponse, "CAN_NOT_SUBMIT_TRANSACTION");
-        return jsonResponse;
+        SubmittedTransactionResponse submittedTransactionResponse =
+                this.objectMapper.readValue(jsonResponse, SubmittedTransactionResponse.class);
+        return submittedTransactionResponse.getData();
     }
 
     private void checkForErrors(String jsonResponse, String defaultMessage) throws Exception {
@@ -153,6 +157,8 @@ public class DogeBlockchainService {
 
         if (response.getStatus().equals(Status.FAIL)) {
             BlockErrorResponse errorResponse = this.objectMapper.readValue(jsonResponse, BlockErrorResponse.class);
+
+            System.out.println(jsonResponse);
 
             final String errMessage = errorResponse.getData().getMessage();
             if (errMessage.startsWith("Label already exists")) {
@@ -165,18 +171,16 @@ public class DogeBlockchainService {
                 throw new DogeHttpException("TRANSACTION_AMOUNT_INVALID", HttpStatus.BAD_REQUEST);
             }
 
-            System.out.println(jsonResponse);
-
             throw new DogeHttpException(defaultMessage, HttpStatus.BAD_REQUEST);
         }
     }
 
 
     public void validateTransactionAmount(Double amount) {
-        if (amount < this.dogeConstantsConfig.getMinTransactionAmount()) {
+        if (amount < this.dogeBlockchainProps.getMinTransactionAmount()) {
             throw new DogeHttpException("TRANSACTION_AMOUNT_TOO_LOW", HttpStatus.BAD_REQUEST);
         }
-        if (amount > this.dogeConstantsConfig.getMaxTransactionAmount()) {
+        if (amount > this.dogeBlockchainProps.getMaxTransactionAmount()) {
             throw new DogeHttpException("TRANSACTION_AMOUNT_TOO_HIGH", HttpStatus.BAD_REQUEST);
         }
     }

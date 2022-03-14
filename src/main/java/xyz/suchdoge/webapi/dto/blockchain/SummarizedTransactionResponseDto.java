@@ -9,6 +9,6 @@ import lombok.*;
 @Builder
 public class SummarizedTransactionResponseDto {
     private Double additionalFee;
-    private Double totalAmountToSend;
+    private Double amountToSend;
     private Double networkFee;
 }

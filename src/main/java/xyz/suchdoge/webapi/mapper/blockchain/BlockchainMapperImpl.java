@@ -1,13 +1,11 @@
 package xyz.suchdoge.webapi.mapper.blockchain;
 
 import org.springframework.stereotype.Component;
-import xyz.suchdoge.webapi.dto.blockchain.BalanceResponseDto;
-import xyz.suchdoge.webapi.dto.blockchain.SummarizedTransactionResponseDto;
-import xyz.suchdoge.webapi.dto.blockchain.TransactionFeeResponseDto;
-import xyz.suchdoge.webapi.dto.blockchain.ValidatedAddressResponseDto;
+import xyz.suchdoge.webapi.dto.blockchain.*;
 import xyz.suchdoge.webapi.model.blockchain.TransactionFee;
 import xyz.suchdoge.webapi.model.blockchain.ValidatedAddress;
 import xyz.suchdoge.webapi.model.blockchain.Wallet;
+import xyz.suchdoge.webapi.model.blockchain.transaction.SubmittedTransaction;
 import xyz.suchdoge.webapi.model.blockchain.transaction.SummarizedTransaction;
 
 @Component
@@ -63,9 +61,22 @@ public class BlockchainMapperImpl implements BlockchainMapper {
         }
 
         return SummarizedTransactionResponseDto.builder()
-                .totalAmountToSend(summarizedTransaction.getTotalAmountToSend())
+                .amountToSend(summarizedTransaction.getAmountToSend())
                 .networkFee(summarizedTransaction.getNetworkFee())
                 .additionalFee(summarizedTransaction.getAdditionalFee())
+                .build();
+    }
+
+    @Override
+    public SubmittedTransactionResponseDto submittedTransactionToSubmittedTransactionResponseDto(
+            SubmittedTransaction submittedTransaction) {
+        if (submittedTransaction == null) {
+            return null;
+        }
+
+        return SubmittedTransactionResponseDto.builder()
+                .transactionId(submittedTransaction.getTransactionId())
+                .network(submittedTransaction.getNetwork().toString())
                 .build();
     }
 }
