@@ -5,11 +5,9 @@ import org.springframework.web.bind.annotation.*;
 import xyz.suchdoge.webapi.dto.blockchain.*;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.mapper.blockchain.BlockchainMapper;
-import xyz.suchdoge.webapi.model.blockchain.transaction.PreparedTransaction;
 import xyz.suchdoge.webapi.model.blockchain.TransactionPriority;
 import xyz.suchdoge.webapi.model.blockchain.TransactionFee;
 import xyz.suchdoge.webapi.model.blockchain.Wallet;
-import xyz.suchdoge.webapi.model.blockchain.transaction.SignedTransaction;
 import xyz.suchdoge.webapi.model.blockchain.transaction.SubmittedTransaction;
 import xyz.suchdoge.webapi.model.blockchain.transaction.SummarizedTransaction;
 import xyz.suchdoge.webapi.service.TransactionService;
@@ -30,18 +28,6 @@ public class WalletController {
         this.dogeBlockchainService = dogeBlockchainService;
         this.transactionService = transactionService;
         this.blockchainMapper = blockchainMapper;
-    }
-
-    @GetMapping("/test")
-    public void test() throws Exception {
-        PreparedTransaction preparedTransaction = this.dogeBlockchainService
-                .prepareTransaction(10d, "nova", "ivan", TransactionPriority.LOW);
-
-        SummarizedTransaction summarizedTransaction =
-                this.dogeBlockchainService.summarizePreparedTransaction(preparedTransaction);
-
-        SignedTransaction singedTransaction = this.dogeBlockchainService.signTransaction(preparedTransaction);
-        SubmittedTransaction submittedTransaction = this.dogeBlockchainService.submitTransaction(singedTransaction);
     }
 
     @GetMapping

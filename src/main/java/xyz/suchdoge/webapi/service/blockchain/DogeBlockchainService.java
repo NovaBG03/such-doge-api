@@ -86,7 +86,6 @@ public class DogeBlockchainService {
                 "to_labels", toLabel + "," + this.dogeBlockchainProps.getAppWalletLabel(),
                 "priority", priority.toString().toLowerCase()
         ));
-        System.out.println(params);
         String jsonResponse = this.blockIo.GetNetworkFeeEstimate(params).toString();
         this.checkForErrors(jsonResponse, "CAN_NOT_CALCULATE_NETWORK_FEE");
         NetworkFeeResponse networkFeeResponse = this.objectMapper.readValue(jsonResponse, NetworkFeeResponse.class);
@@ -157,9 +156,6 @@ public class DogeBlockchainService {
 
         if (response.getStatus().equals(Status.FAIL)) {
             BlockErrorResponse errorResponse = this.objectMapper.readValue(jsonResponse, BlockErrorResponse.class);
-
-            System.out.println(jsonResponse);
-
             final String errMessage = errorResponse.getData().getMessage();
             if (errMessage.startsWith("Label already exists")) {
                 throw new DogeHttpException("ADDRESS_LABEL_ALREADY_EXISTS", HttpStatus.BAD_REQUEST);
