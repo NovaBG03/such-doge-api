@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.suchdoge.webapi.dto.meme.MemePageResponseDto;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
@@ -148,18 +149,28 @@ public class MemeService {
         return this.memeRepository.save(meme);
     }
 
+    @Transactional
     public Meme approveMeme(Long memeId, String principalUsername) {
-        final DogeUser user = this.dogeUserService.getConfirmedUser(principalUsername);
+        final DogeUser principal = this.dogeUserService.getConfirmedUser(principalUsername);
         final Meme meme = this.getMeme(memeId, principalUsername);
 
         if (meme.isApproved()) {
             throw new DogeHttpException("MEME_ALREADY_APPROVED", HttpStatus.BAD_REQUEST);
         }
 
-        meme.setApprovedBy(user);
+        meme.setApprovedBy(principal);
         meme.setApprovedOn(LocalDateTime.now());
 
-        return this.memeRepository.save(meme);
+        final Meme approvedMeme = this.memeRepository.save(meme);
+        this.notificationService.pushNotificationTo(
+                Notification.builder()
+                        .title("Your meme is public!")
+                        .message("Your meme \"" + approvedMeme.getTitle() + "\" is approved by " + principal.getUsername())
+                        .category(NotificationCategory.SUCCESS)
+                        .build(),
+                approvedMeme.getPublisher());
+
+        return approvedMeme;
     }
 
     public void deleteMeme(Long memeId, String principalUsername) {
