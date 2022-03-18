@@ -3,6 +3,7 @@ package xyz.suchdoge.webapi.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -53,13 +54,15 @@ public class MemeService {
         DogeUser principal;
         try {
             principal = this.dogeUserService.getUserByUsername(principalUsername);
-        } catch (Exception e) {
+        } catch (UsernameNotFoundException e) {
             principal = null;
         }
 
         // properties to be populated after the filtration
         Page<Meme> memePage;
-        long count;
+
+        final boolean isPublisherOrAdmin = principal != null
+                && (principal.isAdminOrModerator() || principal.getUsername().equals(publisherUsername));
 
         // determine and get requested memes
         if (Objects.equals(type, "approved")) {
@@ -67,36 +70,29 @@ public class MemeService {
             if (publisherUsername != null) {
                 // approved memes from a specific user
                 memePage = this.memeRepository.findAllByPublisherUsernameAndApprovedOnNotNull(publisherUsername, pageRequest);
-                count = this.memeRepository.countByPublisherUsernameAndApprovedOnNotNull(publisherUsername);
             } else {
                 // approved memes from all users
                 memePage = this.memeRepository.findAllByApprovedOnNotNull(pageRequest);
-                count = this.memeRepository.countByApprovedOnNotNull();
             }
-        } else if (principal != null
-                && (principal.isAdminOrModerator() || principal.getUsername().equals(publisherUsername))) {
+        } else if (isPublisherOrAdmin) {
             // only admins/moderators and the publisher have access to the pending memes
             if (Objects.equals(type, "pending")) {
                 // only pending memes requested
                 if (publisherUsername != null) {
                     // pending memes from a specific user
                     memePage = this.memeRepository.findAllByPublisherUsernameAndApprovedOnNull(publisherUsername, pageRequest);
-                    count = this.memeRepository.countByPublisherUsernameAndApprovedOnNull(publisherUsername);
                 } else {
                     // pending memes from all users
                     memePage = this.memeRepository.findAllByApprovedOnNull(pageRequest);
-                    count = this.memeRepository.countByApprovedOnNull();
                 }
             } else if (Objects.equals(type, "all")) {
                 // all memes requested
                 if (publisherUsername != null) {
                     // all memes from a specific user
                     memePage = this.memeRepository.findAllByPublisherUsername(publisherUsername, pageRequest);
-                    count = this.memeRepository.countByPublisherUsername(publisherUsername);
                 } else {
                     // all memes from all users
                     memePage = this.memeRepository.findAll(pageRequest);
-                    count = this.memeRepository.count();
                 }
             } else {
                 // invalid filter type
@@ -107,8 +103,7 @@ public class MemeService {
             throw new DogeHttpException("MEME_FILTER_TYPE_NOT_ALLOWED", HttpStatus.FORBIDDEN);
         }
 
-        boolean isAdminOrModerator = principal != null && principal.isAdminOrModerator();
-        return memeMapper.createMemePageResponseDto(memePage, isAdminOrModerator);
+        return memeMapper.createMemePageResponseDto(memePage, isPublisherOrAdmin);
     }
 
     public Meme getMeme(Long memeId, String principalUsername) {
@@ -123,6 +118,7 @@ public class MemeService {
         throw new DogeHttpException("MEME_ID_INVALID", HttpStatus.NOT_FOUND);
     }
 
+    @Transactional
     public Meme createMeme(MultipartFile image, Meme meme, String principalUsername) {
         final DogeUser publisher = this.dogeUserService.getConfirmedUser(principalUsername);
 

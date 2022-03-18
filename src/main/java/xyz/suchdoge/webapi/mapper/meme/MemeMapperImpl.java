@@ -3,7 +3,7 @@ package xyz.suchdoge.webapi.mapper.meme;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import xyz.suchdoge.webapi.dto.meme.MemeDataDto;
-import xyz.suchdoge.webapi.dto.meme.MyMemeResponseDto;
+import xyz.suchdoge.webapi.dto.meme.ApprovalMemeResponseDto;
 import xyz.suchdoge.webapi.dto.meme.MemePageResponseDto;
 import xyz.suchdoge.webapi.dto.meme.MemeResponseDto;
 import xyz.suchdoge.webapi.model.Meme;
@@ -20,12 +20,10 @@ public class MemeMapperImpl implements MemeMapper {
             return null;
         }
 
-        final Meme meme = Meme.builder()
+        return Meme.builder()
                 .title(memeDto.getTitle().trim())
                 .description(memeDto.getDescription().trim())
                 .build();
-
-        return meme;
     }
 
     @Override
@@ -34,7 +32,7 @@ public class MemeMapperImpl implements MemeMapper {
             return null;
         }
 
-        final MemeResponseDto memeResponseDto = MemeResponseDto.builder()
+        return MemeResponseDto.builder()
                 .id(meme.getId())
                 .title(meme.getTitle())
                 .description(meme.getDescription())
@@ -42,17 +40,15 @@ public class MemeMapperImpl implements MemeMapper {
                 .publisherUsername(meme.getPublisher().getUsername())
                 .publishedOn(meme.isApproved() ? meme.getApprovedOn() : meme.getPublishedOn())
                 .build();
-
-        return memeResponseDto;
     }
 
     @Override
-    public MyMemeResponseDto memeToMemeMyResponseDto(Meme meme) {
+    public ApprovalMemeResponseDto memeToApprovalMemeMyResponseDto(Meme meme) {
         if (meme == null) {
             return null;
         }
 
-        final MyMemeResponseDto memeMyResponseDto = MyMemeResponseDto.builder()
+        return ApprovalMemeResponseDto.builder()
                 .id(meme.getId())
                 .title(meme.getTitle())
                 .description(meme.getDescription())
@@ -61,22 +57,18 @@ public class MemeMapperImpl implements MemeMapper {
                 .publishedOn(meme.isApproved() ? meme.getApprovedOn() : meme.getPublishedOn())
                 .isApproved(meme.isApproved())
                 .build();
-
-        return memeMyResponseDto;
     }
 
     @Override
-    public MemePageResponseDto createMemePageResponseDto(Page<Meme> memes, boolean isAdminOrModerator) {
+    public MemePageResponseDto createMemePageResponseDto(Page<Meme> memes, boolean isPublisherOrAdmin) {
         if (memes == null) {
-            return MemePageResponseDto.builder()
-                    .totalCount(memes.getTotalElements())
-                    .build();
+            return null;
         }
 
         List<MemeResponseDto> memeResponseDtos;
-        if (isAdminOrModerator) {
+        if (isPublisherOrAdmin) {
             memeResponseDtos = StreamSupport.stream(memes.spliterator(), false)
-                    .map(this::memeToMemeMyResponseDto).
+                    .map(this::memeToApprovalMemeMyResponseDto).
                     collect(Collectors.toList());
         } else {
             memeResponseDtos = StreamSupport.stream(memes.spliterator(), false)

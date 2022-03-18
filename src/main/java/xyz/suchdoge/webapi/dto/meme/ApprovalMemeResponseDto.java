@@ -8,6 +8,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-public class MyMemeResponseDto extends MemeResponseDto {
+public class ApprovalMemeResponseDto extends MemeResponseDto {
     private boolean isApproved;
 }
