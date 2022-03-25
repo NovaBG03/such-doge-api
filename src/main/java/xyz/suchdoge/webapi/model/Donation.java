@@ -33,6 +33,10 @@ public class Donation {
     private DogeUser sender;
 
     @ManyToOne
+    @JoinColumn(name = "receiver_id")
+    private DogeUser receiver;
+
+    @ManyToOne
     @JoinColumn(name = "meme_receiver_id")
     private Meme receiverMeme;
 }

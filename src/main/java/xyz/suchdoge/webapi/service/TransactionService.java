@@ -52,6 +52,7 @@ public class TransactionService {
 
         this.donationRepository.save(Donation.builder()
                 .sender(sender)
+                .receiver(receiverMeme.getPublisher())
                 .receiverMeme(receiverMeme)
                 .amount(amount)
                 .submittedAt(LocalDateTime.now())

@@ -24,8 +24,7 @@ public class MemeController {
         this.memeMapper = memeMapper;
     }
 
-
-//    GET meme? page=0 (default 0) (greater or equal 0)
+    //    GET meme? page=0 (default 0) (greater or equal 0)
 //            & size=0 (default 5) (greater or equal 1)
 //            & type=all/approved/pending (default approved)
 //	          & publisher=username (default all users)
@@ -40,7 +39,6 @@ public class MemeController {
         return this.memeService.getMemes(pageRequest, type, publisherUsername, principalUsername);
     }
 
-
     @PostMapping
     public void postMeme(@RequestParam MultipartFile image,
                          @ModelAttribute MemeDataDto memeDto,
@@ -54,8 +52,14 @@ public class MemeController {
         this.memeService.approveMeme(memeId, principal.getName());
     }
 
-    // todo think about different ways of deleting memes
-    // todo create delete/deny meme endpoints
-    // deny - allow admin/moderator to delete approved or not memes
-    // delete - allow user to delete their approved or not memes
+    @DeleteMapping("/reject/{memeId}")
+    @Secured({"ROLE_ADMIN", "ROLE_MODERATOR"})
+    public void rejectMeme(@PathVariable Long memeId, Principal principal) {
+        this.memeService.rejectMeme(memeId, principal.getName());
+    }
+
+    @DeleteMapping("/{memeId}")
+    public void deleteMeme(@PathVariable Long memeId, Principal principal) {
+        this.memeService.deleteMeme(memeId, principal.getName());
+    }
 }

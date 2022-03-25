@@ -3,6 +3,7 @@ package xyz.suchdoge.webapi.service.storage;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
@@ -21,5 +22,13 @@ public class CloudStorageService {
                 .key(path + "/" + fileKey)
                 .build();
         s3Client.putObject(putRequest, RequestBody.fromBytes(fileBytes));
+    }
+
+    public void remove(String fileKey, String path) {
+        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                .bucket(awsConfig.getBucketName())
+                .key(path + "/" + fileKey)
+                .build();
+        s3Client.deleteObject(deleteRequest);
     }
 }

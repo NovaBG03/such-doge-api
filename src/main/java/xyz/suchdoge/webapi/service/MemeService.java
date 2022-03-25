@@ -75,7 +75,7 @@ public class MemeService {
                 memePage = this.memeRepository.findAllByApprovedOnNotNull(pageRequest);
             }
         } else if (isPublisherOrAdmin) {
-            // only admins/moderators and the publisher have access to the pending memes
+            // only the publisher and admins/moderators have access to the pending memes
             if (Objects.equals(type, "pending")) {
                 // only pending memes requested
                 if (publisherUsername != null) {
@@ -169,35 +169,74 @@ public class MemeService {
         return approvedMeme;
     }
 
+    /**
+     * Delete meme.
+     *
+     * @param memeId            id of the meme to be deleted.
+     * @param principalUsername principal's username.
+     */
+    @Transactional
     public void deleteMeme(Long memeId, String principalUsername) {
-        // checks user is confirmed
-        final DogeUser user = this.dogeUserService.getConfirmedUser(principalUsername);
+        // retrieve confirmed user and meme from database
+        final DogeUser principal = this.dogeUserService.getConfirmedUser(principalUsername);
         final Meme meme = this.getMeme(memeId, principalUsername);
 
-        if (meme.isApproved()) {
-            this.removeMeme(meme);
-            return;
+        // check if principal is publisher or admin/moderator
+        if (!meme.getPublisher().equals(principal) && !principal.isAdminOrModerator()) {
+            throw new DogeHttpException("CAN_NOT_DELETE_FOREIGN_MEME", HttpStatus.UNAUTHORIZED);
         }
 
-        this.denyMeme(meme);
+        // remove meme from the storage
+        this.removeMeme(meme);
+
+        // if publisher is different from the principal, push notification to the publisher
+        if (!meme.getPublisher().equals(principal)) {
+            this.notificationService.pushNotificationTo(
+                    Notification.builder()
+                            .title("Meme deleted!")
+                            .message("Your meme \"" + meme.getTitle() + "\" has been deleted by " + principalUsername)
+                            .category(NotificationCategory.DANGER)
+                            .build(),
+                    meme.getPublisher());
+        }
     }
 
-    private void removeMeme(Meme meme) {
-        // todo make delete meme and persist point earned with it
-        throw new RuntimeException("Not Implemented");
-    }
+    /**
+     * Reject meme upload request and delete it.
+     *
+     * @param memeId            id of the meme to be rejected.
+     * @param principalUsername principal's username.
+     */
+    @Transactional
+    public void rejectMeme(Long memeId, String principalUsername) {
+        // retrieve meme from database
+        final Meme meme = this.getMeme(memeId, principalUsername);
 
-    private void denyMeme(Meme meme) {
-        final DogeUser publisher = meme.getPublisher();
-        this.memeRepository.delete(meme);
+        // check if meme is already approved
+        if (meme.isApproved()) {
+            throw new DogeHttpException("MEME_ALREADY_APPROVED", HttpStatus.BAD_REQUEST);
+        }
+
+        // remove meme from the storage
+        this.removeMeme(meme);
+
+        // push notification to the meme publisher
         this.notificationService.pushNotificationTo(
                 Notification.builder()
-                        .title("Disapproved")
-                        .message("Your meme \"" + meme.getTitle() + "\" has been rejected!")
+                        .title("Meme rejected!")
+                        .message("Your meme \"" + meme.getTitle() + "\" has been rejected by " + principalUsername)
                         .category(NotificationCategory.DANGER)
                         .build(),
-                publisher
-        );
+                meme.getPublisher());
     }
 
+    /**
+     * Remove meme from the database and the cloud storage
+     *
+     * @param meme meme to be deleted
+     */
+    private void removeMeme(Meme meme) {
+        this.cloudStorageService.remove(meme.getImageKey(), "meme");
+        this.memeRepository.delete(meme);
+    }
 }

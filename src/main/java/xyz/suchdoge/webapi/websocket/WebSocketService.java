@@ -24,7 +24,6 @@ public class WebSocketService {
             e.printStackTrace();
         }
 
-        System.out.println("Sending to: " + username );
         messagingTemplate.convertAndSendToUser(username ,destination, serializedPayload);
     }
 }

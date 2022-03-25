@@ -1,5 +1,6 @@
 package xyz.suchdoge.webapi.model;
 
+import com.google.common.collect.Sets;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
 import xyz.suchdoge.webapi.model.user.DogeUser;
@@ -7,6 +8,7 @@ import xyz.suchdoge.webapi.model.user.DogeUser;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.Collection;
 
 @Entity
 @Getter
@@ -50,8 +52,17 @@ public class Meme {
 
     private LocalDateTime approvedOn;
 
+    @Builder.Default
+    @OneToMany(mappedBy = "receiverMeme")
+    private Collection<Donation> donations = Sets.newHashSet();
+
     public boolean isApproved() {
         return this.approvedOn != null
                 && this.approvedOn.isBefore(LocalDateTime.now());
+    }
+
+    @PreRemove
+    public void preRemove() {
+        this.donations.forEach(donation -> donation.setReceiverMeme(null));
     }
 }
