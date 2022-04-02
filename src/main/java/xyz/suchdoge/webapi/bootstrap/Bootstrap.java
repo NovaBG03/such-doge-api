@@ -42,7 +42,7 @@ public class Bootstrap implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         if (dogeRoleRepository.count() == 0) {
             loadRoles();
         }
@@ -97,28 +97,30 @@ public class Bootstrap implements CommandLineRunner {
         this.setWallet(admin);
 
         users.forEach(u -> {
-            try {
-                cloudStorageService.upload(
-                        imageGeneratorService.generateProfilePic(u.getUsername()),
-                        u.getUsername() + ".png",
-                        "user");
-            } catch (Exception e) {
-            }
+            setWallet(u);
+            setImage(u);
         });
     }
 
     private void setWallet(DogeUser user) {
-        String address = "";
+        final String address;
         try {
-            address = this.blockchainService.createWallet(user.getUsername()).getValue();
+            address = blockchainService.createOrGetAddress(user.getUsername()).getValue();
         } catch (Exception e) {
-            try {
-                address = this.blockchainService.getWallet(user.getUsername()).getAddress().getValue();
-            } catch (Exception e2) {
-            }
+            return;
         }
 
         user.setDogePublicKey(address);
         dogeUserRepository.save(user);
+    }
+
+    private void setImage(DogeUser user) {
+        try {
+            cloudStorageService.upload(
+                    imageGeneratorService.generateProfilePic(user.getUsername()),
+                    user.getUsername() + ".png",
+                    "user");
+        } catch (Exception ignored) {
+        }
     }
 }

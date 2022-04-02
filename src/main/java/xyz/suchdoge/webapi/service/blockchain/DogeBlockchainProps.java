@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Doge blockchain configuration properties.
+ * @author Nikita
  */
 @Data
 @AllArgsConstructor

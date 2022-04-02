@@ -26,7 +26,7 @@ public class NotificationService {
     private final ModelValidatorService modelValidatorService;
 
     /**
-     * Constructs new NotificationService with needed dependencies.
+     * Constructs new instance with needed dependencies.
      */
     public NotificationService(NotificationRepository notificationRepository,
                                NotificationMapper notificationMapper,

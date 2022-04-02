@@ -45,7 +45,7 @@ public class WalletController {
     }
 
     @GetMapping("/validate")
-    public ValidatedAddressResponseDto validateAddress(@RequestParam(name = "address") String address) throws Exception {
+    public ValidatedAddressResponseDto validateAddress(@RequestParam(name = "address") String address) {
         return this.blockchainMapper.validatedAddressToValidatedAddressResponseDto(
                 this.dogeBlockchainService.validateAddress(address)
         );
@@ -58,7 +58,7 @@ public class WalletController {
 
     @PostMapping("/transaction/estimatedFee")
     public TransactionFeeResponseDto getEstimatedTransactionFee(@RequestParam String receiverUsername,
-                                                                @RequestBody TransactionDto transactionDto) throws Exception {
+                                                                @RequestBody TransactionDto transactionDto) {
         // todo validate user with provided username exists
         TransactionFee transactionFee = this.dogeBlockchainService.calculateTransactionFee(
                 transactionDto.getAmount(),
@@ -70,7 +70,7 @@ public class WalletController {
     @PostMapping("/transaction/summarized")
     public SummarizedTransactionResponseDto summarizeDonation(@RequestParam Long memeId,
                                                               @RequestBody TransactionDto transactionDto,
-                                                              Principal principal) throws Exception {
+                                                              Principal principal) {
         SummarizedTransaction summarizedTransaction = this.transactionService.summarizeDonation(
                 transactionDto.getAmount(),
                 principal.getName(),
@@ -82,8 +82,8 @@ public class WalletController {
 
     @PostMapping("/transaction/donation")
     public SubmittedTransactionResponseDto donate(@RequestParam Long memeId,
-                       @RequestBody TransactionDto transactionDto,
-                       Principal principal) throws Exception {
+                                                  @RequestBody TransactionDto transactionDto,
+                                                  Principal principal) {
         SubmittedTransaction submittedTransaction = this.transactionService.donate(
                 transactionDto.getAmount(),
                 principal.getName(),

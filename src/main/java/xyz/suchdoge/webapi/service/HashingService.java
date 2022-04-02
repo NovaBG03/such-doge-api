@@ -8,12 +8,14 @@ import java.nio.charset.StandardCharsets;
 /**
  * Simple hashing service.
  * Mainly used for hashing sensitive data (refresh tokens, activation tokens) before saving it to the database
+ *
  * @author Nikita
  */
 @Service
 public class HashingService {
     /**
      * Performs hashing algorithm for a given string
+     *
      * @param string string to be hashed
      * @return hashed string
      */

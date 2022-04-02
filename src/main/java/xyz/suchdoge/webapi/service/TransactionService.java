@@ -37,13 +37,13 @@ public class TransactionService {
     public SummarizedTransaction summarizeDonation(Double amount,
                                                    String fromUsername,
                                                    Long receiverMemeId,
-                                                   TransactionPriority priority) throws Exception {
+                                                   TransactionPriority priority) {
         final Meme receiverMeme = this.memeService.getMeme(receiverMemeId, fromUsername);
         return this.summarizeTransaction(amount, fromUsername, receiverMeme.getPublisher().getUsername(), priority);
     }
 
     @Transactional
-    public SubmittedTransaction donate(Double amount, String fromUsername, Long receiverMemeId, TransactionPriority priority) throws Exception {
+    public SubmittedTransaction donate(Double amount, String fromUsername, Long receiverMemeId, TransactionPriority priority) {
         final DogeUser sender = this.userService.getConfirmedUser(fromUsername);
         final Meme receiverMeme = this.memeService.getMeme(receiverMemeId, fromUsername);
 
@@ -64,7 +64,7 @@ public class TransactionService {
     private SummarizedTransaction summarizeTransaction(Double amount,
                                                        String fromUsername,
                                                        String receiverUsername,
-                                                       TransactionPriority priority) throws Exception {
+                                                       TransactionPriority priority) {
         validateTransaction(amount, fromUsername, receiverUsername);
 
         PreparedTransaction preparedTransaction = this.dogeBlockchainService
@@ -80,7 +80,7 @@ public class TransactionService {
     private SubmittedTransaction performTransaction(Double amount,
                                                     String fromUsername,
                                                     String receiverUsername,
-                                                    TransactionPriority priority) throws Exception {
+                                                    TransactionPriority priority) {
         PreparedTransaction preparedTransaction = this.dogeBlockchainService
                 .prepareTransaction(amount, fromUsername, receiverUsername, priority);
 

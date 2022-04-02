@@ -43,7 +43,7 @@ public class DogeUserService implements UserDetailsService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
-     * Constructs new UserService with needed dependencies.
+     * Constructs new instance with needed dependencies.
      */
     public DogeUserService(PasswordEncoder passwordEncoder,
                            DogeUserRepository dogeUserRepository,
@@ -125,35 +125,23 @@ public class DogeUserService implements UserDetailsService {
                 .build();
 
         // mark user account as not confirmed
-        DogeRole userRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER);
+        final DogeRole userRole = this.dogeRoleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER);
         user.addRole(userRole);
 
         // validate user and save it to the database
         modelValidatorService.validate(user);
         DogeUser savedUser = dogeUserRepository.save(user);
 
+        // create user wallet
+        final Address address = this.blockchainService.createOrGetAddress(savedUser.getUsername());
+        savedUser = this.changeDogePublicKey(address.getValue(), savedUser);
+
         // generate personalized profile pic and save it to cloud storage
         try {
             final byte[] profilePic = this.imageGeneratorService.generateProfilePic(savedUser.getUsername());
             this.cloudStorageService.upload(profilePic, savedUser.getUsername() + ".png", "user");
         } catch (Exception e) {
-            // todo do something when can not generate or save personalized profile pic
-        }
-
-        // create user wallet
-        Address address;
-        try {
-            address = this.blockchainService.createWallet(savedUser.getUsername());
-            savedUser = this.changeDogePublicKey(address.getValue(), savedUser);
-        } catch (Exception e) {
-            // todo do something when can not generate user wallet
-            // get wallet if already exists one
-            try {
-                address = this.blockchainService.getWallet(savedUser.getUsername()).getAddress();
-                savedUser = this.changeDogePublicKey(address.getValue(), savedUser);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            // skip profile pic generation
         }
 
         return savedUser;
