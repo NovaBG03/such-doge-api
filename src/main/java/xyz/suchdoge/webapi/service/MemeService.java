@@ -26,24 +26,36 @@ import java.util.UUID;
 @Service
 public class MemeService {
     private final MemeRepository memeRepository;
-    private final DogeUserService dogeUserService;
+    private final DogeUserService userService;
     private final CloudStorageService cloudStorageService;
     private final NotificationService notificationService;
     private final ModelValidatorService modelValidatorService;
     private final MemeMapper memeMapper;
 
     public MemeService(MemeRepository memeRepository,
-                       DogeUserService dogeUserService,
+                       DogeUserService userService,
                        CloudStorageService cloudStorageService,
                        NotificationService notificationService,
                        ModelValidatorService modelValidatorService,
                        MemeMapper memeMapper) {
         this.memeRepository = memeRepository;
-        this.dogeUserService = dogeUserService;
+        this.userService = userService;
         this.cloudStorageService = cloudStorageService;
         this.notificationService = notificationService;
         this.modelValidatorService = modelValidatorService;
         this.memeMapper = memeMapper;
+    }
+
+    /**
+     * Get count of public memes published by a specific user.
+     *
+     * @param username memes publisher.
+     * @return count of public memes.
+     * @throws UsernameNotFoundException if the user does not exist.
+     */
+    public Long getMemesCount(String username) throws UsernameNotFoundException {
+        userService.getUserByUsername(username);
+        return memeRepository.countByPublisherUsernameAndApprovedOnNotNull(username);
     }
 
     public MemePageResponseDto getMemes(PageRequest pageRequest,
@@ -53,7 +65,7 @@ public class MemeService {
         // retrieve user from database
         DogeUser principal;
         try {
-            principal = this.dogeUserService.getUserByUsername(principalUsername);
+            principal = this.userService.getUserByUsername(principalUsername);
         } catch (UsernameNotFoundException e) {
             principal = null;
         }
@@ -110,7 +122,7 @@ public class MemeService {
         final Meme meme = this.memeRepository.getOptionalById(memeId)
                 .orElseThrow(() -> new DogeHttpException("MEME_ID_INVALID", HttpStatus.NOT_FOUND));
 
-        final DogeUser user = this.dogeUserService.getUserByUsername(principalUsername);
+        final DogeUser user = this.userService.getUserByUsername(principalUsername);
         if (meme.isApproved() || user.isAdminOrModerator() || user.equals(meme.getPublisher())) {
             return meme;
         }
@@ -119,8 +131,8 @@ public class MemeService {
     }
 
     @Transactional
-    public Meme createMeme(MultipartFile image, Meme meme, String principalUsername) {
-        final DogeUser publisher = this.dogeUserService.getConfirmedUser(principalUsername);
+    public void createMeme(MultipartFile image, Meme meme, String principalUsername) {
+        final DogeUser publisher = this.userService.getConfirmedUser(principalUsername);
 
         try {
             final String imageId = UUID.randomUUID() + ".png";
@@ -142,12 +154,12 @@ public class MemeService {
         }
 
         this.modelValidatorService.validate(meme);
-        return this.memeRepository.save(meme);
+        this.memeRepository.save(meme);
     }
 
     @Transactional
-    public Meme approveMeme(Long memeId, String principalUsername) {
-        final DogeUser principal = this.dogeUserService.getConfirmedUser(principalUsername);
+    public void approveMeme(Long memeId, String principalUsername) {
+        final DogeUser principal = this.userService.getConfirmedUser(principalUsername);
         final Meme meme = this.getMeme(memeId, principalUsername);
 
         if (meme.isApproved()) {
@@ -165,8 +177,6 @@ public class MemeService {
                         .category(NotificationCategory.SUCCESS)
                         .build(),
                 approvedMeme.getPublisher());
-
-        return approvedMeme;
     }
 
     /**
@@ -178,7 +188,7 @@ public class MemeService {
     @Transactional
     public void deleteMeme(Long memeId, String principalUsername) {
         // retrieve confirmed user and meme from database
-        final DogeUser principal = this.dogeUserService.getConfirmedUser(principalUsername);
+        final DogeUser principal = this.userService.getConfirmedUser(principalUsername);
         final Meme meme = this.getMeme(memeId, principalUsername);
 
         // check if principal is publisher or admin/moderator

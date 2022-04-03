@@ -28,6 +28,7 @@ import java.io.IOException;
 
 /**
  * Service for common user operations.
+ *
  * @author Nikita
  */
 @Service
@@ -68,9 +69,10 @@ public class DogeUserService implements UserDetailsService {
     /**
      * Retrieves a specific user from the database and creates UserDetails from it.
      * Mostly used by the framework.
+     *
      * @param username username to search for.
      * @return UserDetails wrapper of user from the database.
-     * @exception UsernameNotFoundException if the user does not exist.
+     * @throws UsernameNotFoundException if the user does not exist.
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -79,9 +81,10 @@ public class DogeUserService implements UserDetailsService {
 
     /**
      * Retrieves a specific user from the database.
-     * @param username username to search for.
+     *
+     * @param username user to search for.
      * @return user from the database.
-     * @exception UsernameNotFoundException if the user does not exist.
+     * @throws UsernameNotFoundException if the user does not exist.
      */
     public DogeUser getUserByUsername(String username) throws UsernameNotFoundException {
         return dogeUserRepository.findByUsername(username)
@@ -90,10 +93,11 @@ public class DogeUserService implements UserDetailsService {
 
     /**
      * Retrieves a confirmed user from the database.
+     *
      * @param username username to search for.
      * @return confirmed user from the database.
      * @throws UsernameNotFoundException if the user does not exist.
-     * @throws DogeHttpException USER_NOT_CONFIRMED if user is found but not confirmed.
+     * @throws DogeHttpException         USER_NOT_CONFIRMED if user is found but not confirmed.
      */
     public DogeUser getConfirmedUser(String username) throws DogeHttpException, UsernameNotFoundException {
         final DogeUser user = this.getUserByUsername(username);
@@ -105,8 +109,9 @@ public class DogeUserService implements UserDetailsService {
 
     /**
      * Creates new user instance and save it to the database.
+     *
      * @param username new account's username.
-     * @param email email associated with the new account.
+     * @param email    email associated with the new account.
      * @param password password for the new account.
      * @return saved to the database user.
      */
@@ -149,8 +154,9 @@ public class DogeUserService implements UserDetailsService {
 
     /**
      * Change email of a specific user account.
+     *
      * @param newEmail new email to associate with the user account.
-     * @param user user to be updated.
+     * @param user     user to be updated.
      * @return updated user.
      * @throws DogeHttpException DOGE_USER_EMAIL_INVALID if is not valid email.
      * @throws DogeHttpException DOGE_USER_EMAIL_EXISTS if account with this email already exists.
@@ -178,8 +184,9 @@ public class DogeUserService implements UserDetailsService {
 
     /**
      * Change doge public key of a specific user account.
+     *
      * @param newDogePublicKey new doge public key to associate with the user account.
-     * @param user user to be updated.
+     * @param user             user to be updated.
      * @return updated user.
      * @throws DogeHttpException DOGE_USER_PUBLIC_KEY_INVALID if new doge public key is not.
      */
@@ -197,10 +204,11 @@ public class DogeUserService implements UserDetailsService {
 
     /**
      * Change password of a specific user account
-     * @param oldPassword old password
-     * @param newPassword new password
+     *
+     * @param oldPassword     old password
+     * @param newPassword     new password
      * @param confirmPassword confirm new password
-     * @param username username of the user whose password to change
+     * @param username        username of the user whose password to change
      * @throws DogeHttpException PASSWORDS_DOES_NOT_MATCH if new password and confirm password does not match
      * @throws DogeHttpException WRONG_OLD_PASSWORD if old password is wrong
      * @throws DogeHttpException NEW_PASSWORD_AND_OLD_PASSWORD_ARE_THE_SAME if old password and new password are the same
@@ -238,7 +246,8 @@ public class DogeUserService implements UserDetailsService {
 
     /**
      * Change profile picture of a specific user account
-     * @param image new profile image multipart file
+     *
+     * @param image    new profile image multipart file
      * @param username username of the user whose image to update
      * @throws DogeHttpException CAN_NOT_READ_IMAGE_BYTES if multipart file bytes can't be read
      * @throws DogeHttpException CAN_NOT_SAVE_IMAGE if image can not be uploaded to the cloud

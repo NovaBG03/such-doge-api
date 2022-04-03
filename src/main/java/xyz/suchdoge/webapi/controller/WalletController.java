@@ -10,7 +10,7 @@ import xyz.suchdoge.webapi.model.blockchain.TransactionFee;
 import xyz.suchdoge.webapi.model.blockchain.Wallet;
 import xyz.suchdoge.webapi.model.blockchain.transaction.SubmittedTransaction;
 import xyz.suchdoge.webapi.model.blockchain.transaction.SummarizedTransaction;
-import xyz.suchdoge.webapi.service.TransactionService;
+import xyz.suchdoge.webapi.service.donation.TransactionService;
 import xyz.suchdoge.webapi.service.blockchain.DogeBlockchainService;
 
 import java.security.Principal;

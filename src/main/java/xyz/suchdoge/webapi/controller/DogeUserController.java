@@ -6,6 +6,7 @@ import xyz.suchdoge.webapi.dto.user.*;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.mapper.user.UserMapper;
 import xyz.suchdoge.webapi.model.user.DogeUser;
+import xyz.suchdoge.webapi.service.AchievementsService;
 import xyz.suchdoge.webapi.service.DogeUserService;
 import xyz.suchdoge.webapi.service.jwt.RefreshTokenService;
 import xyz.suchdoge.webapi.service.register.RegisterService;
@@ -20,15 +21,18 @@ public class DogeUserController {
     private final RefreshTokenService refreshTokenService;
     private final RegisterService registerService;
     private final DogeUserService dogeUserService;
+    private final AchievementsService achievementsService;
     private final UserMapper userMapper;
 
     public DogeUserController(RefreshTokenService refreshTokenService,
                               RegisterService registerService,
                               DogeUserService dogeUserService,
+                              AchievementsService achievementsService,
                               UserMapper userMapper) {
         this.refreshTokenService = refreshTokenService;
         this.registerService = registerService;
         this.dogeUserService = dogeUserService;
+        this.achievementsService = achievementsService;
         this.userMapper = userMapper;
     }
 
@@ -36,6 +40,11 @@ public class DogeUserController {
     public UserInfoResponseDto getPrincipalInfo(Principal principal) {
         final DogeUser user = dogeUserService.getUserByUsername(principal.getName());
         return this.userMapper.dogeUserToUserInfoResponseDto(user);
+    }
+
+    @GetMapping("/achievements/{username}")
+    public AchievementsResponseDto getAchievements(@PathVariable String username) {
+        return this.achievementsService.getAchievements(username);
     }
 
     @PostMapping("/register")

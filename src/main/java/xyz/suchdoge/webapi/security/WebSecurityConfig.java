@@ -63,6 +63,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/register",
                         "/activate/*",
                         "/refresh/*",
+                        "/achievements/*",
                         "/doge-websocket/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/meme").permitAll()
                 .anyRequest().authenticated();
