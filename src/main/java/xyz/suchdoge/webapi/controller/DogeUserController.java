@@ -43,7 +43,7 @@ public class DogeUserController {
     }
 
     @GetMapping("/achievements/{username}")
-    public AchievementsResponseDto getAchievements(@PathVariable String username) {
+    public AchievementsListResponseDto getAchievements(@PathVariable String username) {
         return this.achievementsService.getAchievements(username);
     }
 
