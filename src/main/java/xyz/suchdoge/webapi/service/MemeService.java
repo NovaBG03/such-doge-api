@@ -2,14 +2,17 @@ package xyz.suchdoge.webapi.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.suchdoge.webapi.dto.meme.MemePageResponseDto;
+import xyz.suchdoge.webapi.dto.meme.filter.MemeOrderFilter;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.mapper.meme.MemeMapper;
+import xyz.suchdoge.webapi.dto.meme.filter.MemePublishFilter;
 import xyz.suchdoge.webapi.model.notification.Notification;
 import xyz.suchdoge.webapi.model.notification.NotificationCategory;
 import xyz.suchdoge.webapi.model.user.DogeUser;
@@ -20,7 +23,6 @@ import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -59,7 +61,8 @@ public class MemeService {
     }
 
     public MemePageResponseDto getMemes(PageRequest pageRequest,
-                                        String type,
+                                        MemePublishFilter publishFilter,
+                                        MemeOrderFilter orderFilter,
                                         String publisherUsername,
                                         String principalUsername) throws DogeHttpException {
         // retrieve user from database
@@ -70,49 +73,39 @@ public class MemeService {
             principal = null;
         }
 
-        // properties to be populated after the filtration
-        Page<Meme> memePage;
-
         final boolean isPublisherOrAdmin = principal != null
                 && (principal.isAdminOrModerator() || principal.getUsername().equals(publisherUsername));
 
+        // properties to be populated after the filtration
+        Page<Meme> memePage;
+
         // determine and get requested memes
-        if (Objects.equals(type, "approved")) {
-            // only approved memes are requested
-            if (publisherUsername != null) {
-                // approved memes from a specific user
-                memePage = this.memeRepository.findAllByPublisherUsernameAndApprovedOnNotNull(publisherUsername, pageRequest);
-            } else {
-                // approved memes from all users
-                memePage = this.memeRepository.findAllByApprovedOnNotNull(pageRequest);
-            }
-        } else if (isPublisherOrAdmin) {
-            // only the publisher and admins/moderators have access to the pending memes
-            if (Objects.equals(type, "pending")) {
+        switch (publishFilter) {
+            case APPROVED:
+                // only approved memes are requested
+                memePage = this.getApprovedMemes(publisherUsername, pageRequest, orderFilter);
+                break;
+            case PENDING:
+                // only the publisher and admins/moderators have access to the pending memes
+                if (!isPublisherOrAdmin) {
+                    throw new DogeHttpException("MEME_FILTER_NOT_ALLOWED", HttpStatus.FORBIDDEN);
+                }
+
                 // only pending memes requested
-                if (publisherUsername != null) {
-                    // pending memes from a specific user
-                    memePage = this.memeRepository.findAllByPublisherUsernameAndApprovedOnNull(publisherUsername, pageRequest);
-                } else {
-                    // pending memes from all users
-                    memePage = this.memeRepository.findAllByApprovedOnNull(pageRequest);
+                memePage = this.getPendingMemes(publisherUsername, pageRequest, orderFilter);
+                break;
+            case ALL:
+                // only the publisher and admins/moderators have access to the pending memes
+                if (!isPublisherOrAdmin) {
+                    throw new DogeHttpException("MEME_FILTER_NOT_ALLOWED", HttpStatus.FORBIDDEN);
                 }
-            } else if (Objects.equals(type, "all")) {
+
                 // all memes requested
-                if (publisherUsername != null) {
-                    // all memes from a specific user
-                    memePage = this.memeRepository.findAllByPublisherUsername(publisherUsername, pageRequest);
-                } else {
-                    // all memes from all users
-                    memePage = this.memeRepository.findAll(pageRequest);
-                }
-            } else {
-                // invalid filter type
-                throw new DogeHttpException("MEME_FILTER_TYPE_NOT_ALLOWED", HttpStatus.FORBIDDEN);
-            }
-        } else {
-            // user have no access to the requested resource (meme)
-            throw new DogeHttpException("MEME_FILTER_TYPE_NOT_ALLOWED", HttpStatus.FORBIDDEN);
+                memePage = this.getAllMemes(publisherUsername, pageRequest, orderFilter);
+                break;
+            default:
+                // no filter type provided
+                throw new DogeHttpException("MEME_FILTER_NOT_ALLOWED", HttpStatus.FORBIDDEN);
         }
 
         return memeMapper.createMemePageResponseDto(memePage, isPublisherOrAdmin);
@@ -248,5 +241,86 @@ public class MemeService {
     private void removeMeme(Meme meme) {
         this.cloudStorageService.remove(meme.getImageKey(), "meme");
         this.memeRepository.delete(meme);
+    }
+
+    private Page<Meme> getApprovedMemes(String publisherUsername, PageRequest pageRequest, MemeOrderFilter orderFilter) {
+        try {
+            pageRequest = getPageRequestWithBasicOrderFilter(pageRequest, orderFilter);
+        } catch (DogeHttpException e) {
+            return this.getApprovedMemesWithAdvanceOrderFilter(publisherUsername, pageRequest, orderFilter);
+        }
+
+        if (publisherUsername != null) {
+            // approved memes from a specific user
+            return this.memeRepository.findAllByPublisherUsernameAndApprovedOnNotNull(publisherUsername, pageRequest);
+        }
+        // approved memes from all users
+        return this.memeRepository.findAllByApprovedOnNotNull(pageRequest);
+    }
+
+    private Page<Meme> getApprovedMemesWithAdvanceOrderFilter(String publisherUsername, PageRequest pageRequest, MemeOrderFilter orderFilter) {
+        int daysFromNow = 0;
+        switch (orderFilter) {
+            case LATEST_TIPPED:
+                if (publisherUsername != null) {
+                    return this.memeRepository.findAllByPublisherUsernameApprovedOnNotNullOrderByLatestTipped(publisherUsername, pageRequest);
+                }
+                return this.memeRepository.findAllByApprovedOnNotNullOrderByLatestTipped(pageRequest);
+            case MOST_TIPPED:
+                if (publisherUsername != null) {
+                    return this.memeRepository.findAllByPublisherUsernameApprovedOnNotNullOrderByMostTipped(publisherUsername, pageRequest);
+                }
+                return this.memeRepository.findAllByApprovedOnNotNullOrderByMostTipped(pageRequest);
+            case TOP_TIPPED_LAST_3_DAYS:
+                daysFromNow = 3;
+                break;
+            case TOP_TIPPED_LAST_WEEK:
+                daysFromNow = 7;
+                break;
+            case TOP_TIPPED_LAST_MONTH:
+                daysFromNow = 30;
+                break;
+        }
+
+        if (publisherUsername == null && daysFromNow > 0) {
+            return this.memeRepository.findAllByApprovedOnNotNullOrderByTopTipped(pageRequest, daysFromNow);
+        }
+
+        throw new DogeHttpException("MEME_FILTER_NOT_ALLOWED", HttpStatus.FORBIDDEN);
+    }
+
+    private Page<Meme> getPendingMemes(String publisherUsername, PageRequest pageRequest, MemeOrderFilter orderFilter) {
+        pageRequest = getPageRequestWithBasicOrderFilter(pageRequest, orderFilter);
+
+        if (publisherUsername != null) {
+            // pending memes from a specific user
+            return this.memeRepository.findAllByPublisherUsernameAndApprovedOnNull(publisherUsername, pageRequest);
+        }
+
+        // pending memes from all users
+        return this.memeRepository.findAllByApprovedOnNull(pageRequest);
+    }
+
+    private Page<Meme> getAllMemes(String publisherUsername, PageRequest pageRequest, MemeOrderFilter orderFilter) {
+        pageRequest = getPageRequestWithBasicOrderFilter(pageRequest, orderFilter);
+
+        if (publisherUsername != null) {
+            // all memes from a specific user
+            return this.memeRepository.findAllByPublisherUsername(publisherUsername, pageRequest);
+        }
+
+        // all memes from all users
+        return this.memeRepository.findAll(pageRequest);
+    }
+
+    private PageRequest getPageRequestWithBasicOrderFilter(PageRequest pageRequest, MemeOrderFilter orderFilter) {
+        switch (orderFilter) {
+            case NEWEST:
+                return pageRequest.withSort(Sort.by(Sort.Direction.DESC, "approvedOn", "publishedOn"));
+            case OLDEST:
+                return pageRequest.withSort(Sort.by(Sort.Direction.ASC, "approvedOn", "publishedOn"));
+            default:
+                throw new DogeHttpException("MEME_FILTER_NOT_ALLOWED", HttpStatus.FORBIDDEN);
+        }
     }
 }

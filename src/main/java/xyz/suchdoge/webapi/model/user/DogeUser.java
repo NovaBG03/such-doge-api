@@ -14,7 +14,6 @@ import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "user")
@@ -29,7 +28,7 @@ public class DogeUser {
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(nullable = false, updatable = false)
-    @Type(type="org.hibernate.type.UUIDCharType")
+    @Type(type = "org.hibernate.type.UUIDCharType")
     private UUID id;
 
     @NotNull(message = "DOGE_USER_USERNAME_NULL")
@@ -77,6 +76,7 @@ public class DogeUser {
 
     /**
      * Add a new role.
+     *
      * @param role role to be added.
      */
     public void addRole(DogeRole role) {
@@ -87,6 +87,7 @@ public class DogeUser {
 
     /**
      * Add multiple roles.
+     *
      * @param roles roles to be added.
      */
     public void addRoles(Collection<DogeRole> roles) {
@@ -95,6 +96,7 @@ public class DogeUser {
 
     /**
      * Remove specific role by role level if exists.
+     *
      * @param roleLevel role level to be removed.
      */
     public void removeRole(DogeRoleLevel roleLevel) {

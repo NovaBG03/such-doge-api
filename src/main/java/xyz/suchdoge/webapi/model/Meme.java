@@ -26,7 +26,7 @@ public class Meme {
     @NotNull(message = "MEME_TITLE_NULL")
     @Length.List({
             @Length(min = 3, message = "MEME_TITLE_TOO_SHORT"),
-            @Length(max= 30, message = "MEME_TITLE_TOO_LONG")
+            @Length(max = 30, message = "MEME_TITLE_TOO_LONG")
     })
     private String title;
 
