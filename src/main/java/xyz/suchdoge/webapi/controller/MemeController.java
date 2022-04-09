@@ -27,10 +27,10 @@ public class MemeController {
 
     //    GET meme? page=0 (default 0) (greater or equal 0)
     //            & size=0 (default 5) (greater or equal 1)
-    //            & type=ALL,
+    //	          & publisher=username (default all users)
+    //            & publishFilter=ALL,
     //                   APPROVED, (default)
     //                   PENDING,
-    //	          & publishFilter=username (default all users)
     //            & orderFilter=NEWEST, (default)
     //                    OLDEST,
     //                    LATEST_TIPPED,

@@ -35,42 +35,42 @@ public interface MemeRepository extends JpaRepository<Meme, Long> {
     Page<Meme> findAllByPublisherUsernameAndApprovedOnNotNull(String publisherUsername, Pageable pageable);
 
     @Query(nativeQuery = true,
-            value = "select id, approved_on, description, image_key, published_on, title, admin_id, publisher_id from meme m " +
+            value = "select * from meme m " +
                     "left join donation d on m.id = d.meme_receiver_id " +
-                    "group by m.id, approved_on, description, image_key, published_on, title, admin_id, publisher_id " +
+                    "group by m.id " +
                     "order by max(d.submitted_at) desc, approved_on desc")
     Page<Meme> findAllByApprovedOnNotNullOrderByLatestTipped(Pageable pageable);
 
     @Query(nativeQuery = true,
-            value = "select m.id, approved_on, description, image_key, published_on, title, admin_id, publisher_id from meme m " +
+            value = "select * from meme m " +
                     "left join donation d on m.id = d.meme_receiver_id " +
                     "join user u on m.publisher_id = u.id " +
                     "where u.username = :publisherUsername " +
-                    "group by m.id, approved_on, description, image_key, published_on, title, admin_id, publisher_id " +
+                    "group by m.id " +
                     "order by max(d.submitted_at) desc, approved_on desc")
     Page<Meme> findAllByPublisherUsernameApprovedOnNotNullOrderByLatestTipped(@Param("publisherUsername") String publisherUsername, Pageable pageable);
 
     @Query(nativeQuery = true,
-            value = "select m.id, approved_on, description, image_key, published_on, title, admin_id, publisher_id from meme m " +
+            value = "select * from meme m " +
                     "left join donation d on m.id = d.meme_receiver_id " +
-                    "group by m.id, approved_on, description, image_key, published_on, title, admin_id, publisher_id " +
+                    "group by m.id " +
                     "order by sum(d.amount) desc, approved_on desc")
     Page<Meme> findAllByApprovedOnNotNullOrderByMostTipped(Pageable pageable);
 
     @Query(nativeQuery = true,
-            value = "select m.id, approved_on, description, image_key, published_on, title, admin_id, publisher_id from meme m " +
+            value = "select * from meme m " +
                     "left join donation d on m.id = d.meme_receiver_id " +
                     "join user u on m.publisher_id = u.id " +
                     "where u.username = :publisherUsername " +
-                    "group by m.id, approved_on, description, image_key, published_on, title, admin_id, publisher_id " +
+                    "group by m.id " +
                     "order by sum(d.amount) desc, approved_on desc")
     Page<Meme> findAllByPublisherUsernameApprovedOnNotNullOrderByMostTipped(@Param("publisherUsername") String publisherUsername, Pageable pageable);
 
     @Query(nativeQuery = true,
-            value = "select m.id, approved_on, description, image_key, published_on, title, admin_id, publisher_id from meme m " +
+            value = "select * from meme m " +
                     "left join donation d on m.id = d.meme_receiver_id " +
                     "where d.submitted_at BETWEEN NOW() - INTERVAL :days DAY AND NOW() " +
-                    "group by m.id, approved_on, description, image_key, published_on, title, admin_id, publisher_id " +
+                    "group by m.id " +
                     "order by sum(d.amount) desc, approved_on desc")
     Page<Meme> findAllByApprovedOnNotNullOrderByTopTipped(Pageable pageable, @Param("days") int daysFromNow);
 }
