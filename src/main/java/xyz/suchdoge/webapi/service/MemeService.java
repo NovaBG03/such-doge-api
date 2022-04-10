@@ -142,7 +142,9 @@ public class MemeService {
         meme.setApprovedOn(null);
         meme.setPublishedOn(LocalDateTime.now());
 
-        if (meme.getDescription() != null && meme.getDescription().length() == 0) {
+        if (meme.getDescription() == null
+                || meme.getDescription().length() == 0
+                || meme.getDescription().equals("null")) {
             meme.setDescription(null);
         }
 
