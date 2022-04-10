@@ -17,4 +17,5 @@ public class MemeResponseDto {
     private String imageKey;
     private String publisherUsername;
     private LocalDateTime publishedOn;
+    private Double donations;
 }

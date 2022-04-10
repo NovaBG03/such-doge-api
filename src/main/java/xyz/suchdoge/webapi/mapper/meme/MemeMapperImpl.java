@@ -6,6 +6,7 @@ import xyz.suchdoge.webapi.dto.meme.MemeDataDto;
 import xyz.suchdoge.webapi.dto.meme.ApprovalMemeResponseDto;
 import xyz.suchdoge.webapi.dto.meme.MemePageResponseDto;
 import xyz.suchdoge.webapi.dto.meme.MemeResponseDto;
+import xyz.suchdoge.webapi.model.Donation;
 import xyz.suchdoge.webapi.model.Meme;
 
 import java.util.List;
@@ -39,6 +40,7 @@ public class MemeMapperImpl implements MemeMapper {
                 .imageKey(meme.getImageKey())
                 .publisherUsername(meme.getPublisher().getUsername())
                 .publishedOn(meme.isApproved() ? meme.getApprovedOn() : meme.getPublishedOn())
+                .donations(meme.getDonations().stream().mapToDouble(Donation::getAmount).sum())
                 .build();
     }
 
@@ -56,6 +58,7 @@ public class MemeMapperImpl implements MemeMapper {
                 .publisherUsername(meme.getPublisher().getUsername())
                 .publishedOn(meme.isApproved() ? meme.getApprovedOn() : meme.getPublishedOn())
                 .isApproved(meme.isApproved())
+                .donations(meme.getDonations().stream().mapToDouble(Donation::getAmount).sum())
                 .build();
     }
 
