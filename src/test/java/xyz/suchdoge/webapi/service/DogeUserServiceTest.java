@@ -155,7 +155,7 @@ class DogeUserServiceTest {
 
     @Test
     @DisplayName("Should create new user successfully")
-    void shouldCreateNewUserSuccessfully() throws Exception {
+    void shouldCreateNewUserSuccessfully() {
         String email = "test@abv.bg";
         String password = "test";
         byte[] generatedImageBytes = new byte[100];
@@ -172,7 +172,7 @@ class DogeUserServiceTest {
         when(imageGeneratorService.generateProfilePic(username))
                 .thenReturn(generatedImageBytes);
 
-        when(blockchainService.createWallet(username))
+        when(blockchainService.createOrGetAddress(username))
                 .thenReturn(address);
 
         DogeUser user = userService.createUser(username, email, password);
@@ -197,6 +197,9 @@ class DogeUserServiceTest {
     void shouldCreateNewUserSuccessfullyWhenCanNotGenerateProfilePic() {
         String email = "test@abv.bg";
         String password = "test";
+        String publicKey = "address";
+        Network addressNetwork = Network.DOGETEST;
+        Address address = new Address(publicKey, 4L, username, addressNetwork.toString());
 
         when(roleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER))
                 .thenReturn(getRole(DogeRoleLevel.NOT_CONFIRMED_USER));
@@ -207,6 +210,9 @@ class DogeUserServiceTest {
         when(imageGeneratorService.generateProfilePic(username))
                 .thenThrow(DogeHttpException.class);
 
+        when(blockchainService.createOrGetAddress(username))
+                .thenReturn(address);
+
         DogeUser user = userService.createUser(username, email, password);
 
         assertEquals(username, user.getUsername());
@@ -216,8 +222,8 @@ class DogeUserServiceTest {
         verify(userVerifier, times(1)).verifyUsername(username);
         verify(userVerifier, times(1)).verifyEmail(email);
         verify(userVerifier, times(1)).verifyPassword(password);
-        verify(modelValidatorService, times(1)).validate(any(DogeUser.class));
-        verify(userRepository, times(1)).save(any(DogeUser.class));
+        verify(modelValidatorService, atLeastOnce()).validate(any(DogeUser.class));
+        verify(userRepository, atLeastOnce()).save(any(DogeUser.class));
         verify(imageGeneratorService, times(1)).generateProfilePic(username);
         verify(cloudStorageService, times(0)).upload(any(), any(), any());
     }
@@ -228,6 +234,7 @@ class DogeUserServiceTest {
         String email = "test@abv.bg";
         String password = "test";
         byte[] generatedImageBytes = new byte[100];
+        Address address = new Address("address", 1L, username, Network.DOGETEST.toString());
 
         when(roleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER))
                 .thenReturn(getRole(DogeRoleLevel.NOT_CONFIRMED_USER));
@@ -237,6 +244,9 @@ class DogeUserServiceTest {
 
         when(imageGeneratorService.generateProfilePic(username))
                 .thenReturn(generatedImageBytes);
+
+        when(blockchainService.createOrGetAddress(username))
+                .thenReturn(address);
 
         doThrow(new DogeHttpException("SOMETHING_WENT_WONG", HttpStatus.BAD_REQUEST))
                 .when(cloudStorageService)
@@ -251,8 +261,8 @@ class DogeUserServiceTest {
         verify(userVerifier, times(1)).verifyUsername(username);
         verify(userVerifier, times(1)).verifyEmail(email);
         verify(userVerifier, times(1)).verifyPassword(password);
-        verify(modelValidatorService, times(1)).validate(any(DogeUser.class));
-        verify(userRepository, times(1)).save(any(DogeUser.class));
+        verify(modelValidatorService, atLeastOnce()).validate(any(DogeUser.class));
+        verify(userRepository, atLeastOnce()).save(any(DogeUser.class));
         verify(imageGeneratorService, times(1)).generateProfilePic(username);
         verify(cloudStorageService, times(1)).upload(generatedImageBytes, username + ".png", "user");
     }

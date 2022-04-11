@@ -2,7 +2,6 @@ package xyz.suchdoge.webapi.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -11,6 +10,11 @@ import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.service.register.RegisterProps;
 import xyz.suchdoge.webapi.service.validator.EmailVerifier;
 
+/**
+ * Service for sending emails.
+ *
+ * @author Nikita
+ */
 @Service
 public class EmailService {
     private final JavaMailSender mailSender;
@@ -26,6 +30,12 @@ public class EmailService {
         this.registerConfig = registerConfig;
     }
 
+    /**
+     * Send mail with confirmation token to a specific user.
+     *
+     * @param user user receiver.
+     * @param confirmationToken token to send.
+     */
     public void sendToken(DogeUser user, String confirmationToken) {
         final String registerUrl = registerConfig.tokenActivationUrl + "/" + confirmationToken;
         final String subject = "Activate your SuchDoge account";
@@ -34,7 +44,15 @@ public class EmailService {
         this.sendEmail(user.getEmail(), subject, content);
     }
 
-    public void sendEmail(String email, String subject, String content) {
+    /**
+     * Send email from application business mail to a specific email.
+     *
+     * @param email mail receiver.
+     * @param subject mail subject.
+     * @param content mail content.
+     * @throws DogeHttpException when email is invalid or can not send email.
+     */
+    public void sendEmail(String email, String subject, String content) throws DogeHttpException {
         if (!this.emailVerifier.isValidEmail(email)) {
             throw new DogeHttpException("SENDING_EMAIL_INVALID", HttpStatus.BAD_REQUEST);
         }
@@ -47,7 +65,7 @@ public class EmailService {
 
         try {
             mailSender.send(message);
-        } catch (MailException me) {
+        } catch (Exception e) {
             throw new DogeHttpException("CAN_NOT_SEND", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
