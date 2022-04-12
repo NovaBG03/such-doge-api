@@ -10,7 +10,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import xyz.suchdoge.webapi.dto.user.AchievementsListResponseDto;
 import xyz.suchdoge.webapi.service.donation.DonationService;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,29 +42,20 @@ class AchievementsServiceTest {
 
         AchievementsListResponseDto achievementList = achievementsService.getAchievements(username);
 
-        assertNotNull(achievementList);
-        assertEquals(username, achievementList.getUsername());
-        assertTrue(achievementList.getAchievements()
-                .stream()
-                .anyMatch(x -> x.getName().equals("Memes uploaded")
-                        && x.getValue().equals(memesCount.toString())));
-        assertTrue(achievementList.getAchievements()
-                .stream()
-                .anyMatch(x -> x.getName().equals("Donations received")
-                        && x.getValue().equals(donationsReceived + " DOGE")));
-        assertTrue(achievementList.getAchievements()
-                .stream()
-                .anyMatch(x -> x.getName().equals("Donations sent")
-                        && x.getValue().equals(donationsSent + " DOGE")));
+        assertThat(achievementList).isNotNull();
+        assertThat(achievementList.getUsername()).isEqualTo(username);
+        assertThat(achievementList.getAchievements())
+                .anyMatch(x -> x.getName().equals("Memes uploaded") && x.getValue().equals(memesCount.toString()))
+                .anyMatch(x -> x.getName().equals("Donations received") && x.getValue().equals(donationsReceived + " DOGE"))
+                .anyMatch(x -> x.getName().equals("Donations sent") && x.getValue().equals(donationsSent + " DOGE"));
     }
 
     @Test
     @DisplayName("Should throw exception when user not found")
     void shouldThrowExceptionWhenUserNotFound() {
         String username = "notFoundUser";
-
         when(memeService.getMemesCount(username)).thenThrow(UsernameNotFoundException.class);
-
-        assertThrows(UsernameNotFoundException.class, () -> achievementsService.getAchievements(username));
+        assertThatThrownBy(() -> achievementsService.getAchievements(username))
+                .isInstanceOf(UsernameNotFoundException.class);
     }
 }

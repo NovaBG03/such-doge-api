@@ -20,14 +20,16 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final EmailVerifier emailVerifier;
     private final RegisterProps registerConfig;
+    private final String businessEmail;
 
-    @Value("${spring.mail.username}")
-    private String businessEmail;
-
-    public EmailService(JavaMailSender mailSender, EmailVerifier emailVerifier, RegisterProps registerConfig) {
+    public EmailService(JavaMailSender mailSender,
+                        EmailVerifier emailVerifier,
+                        RegisterProps registerConfig,
+                        @Value("${spring.mail.username}") String businessEmail) {
         this.mailSender = mailSender;
         this.emailVerifier = emailVerifier;
         this.registerConfig = registerConfig;
+        this.businessEmail = businessEmail;
     }
 
     /**

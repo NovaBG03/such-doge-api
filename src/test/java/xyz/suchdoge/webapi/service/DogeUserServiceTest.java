@@ -37,7 +37,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -76,7 +77,7 @@ class DogeUserServiceTest {
                 modelValidatorService,
                 applicationEventPublisher);
     }
-    
+
     @Test
     @DisplayName("Should get user by username successfully")
     void shouldGetUserByUsernameSuccessfully() {
@@ -85,18 +86,19 @@ class DogeUserServiceTest {
 
         final DogeUser user = userService.getUserByUsername(username);
 
-        assertEquals(username, user.getUsername());
+        assertThat(user.getUsername()).isEqualTo(username);
     }
-    
+
     @Test
     @DisplayName("Should throw exception when get user username not found")
     void shouldThrowExceptionWhenGetUserUsernameNotFound() {
         when(userRepository.findByUsername(username))
                 .thenReturn(Optional.empty());
 
-        assertThrows(UsernameNotFoundException.class, () -> userService.getUserByUsername(username));
+        assertThatThrownBy(() -> userService.getUserByUsername(username))
+                .isInstanceOf(UsernameNotFoundException.class);
     }
- 
+
     @Test
     @DisplayName("Should load user details successfully")
     void shouldLoadUserDetailsSuccessfully() {
@@ -105,7 +107,7 @@ class DogeUserServiceTest {
 
         final UserDetails userDetails = userService.loadUserByUsername(username);
 
-        assertEquals(username, userDetails.getUsername());
+        assertThat(userDetails.getUsername()).isEqualTo(username);
     }
 
     @Test
@@ -114,7 +116,8 @@ class DogeUserServiceTest {
         when(userRepository.findByUsername(username))
                 .thenReturn(Optional.empty());
 
-        assertThrows(UsernameNotFoundException.class, () -> userService.loadUserByUsername(username));
+        assertThatThrownBy(() -> userService.loadUserByUsername(username))
+                .isInstanceOf(UsernameNotFoundException.class);
     }
 
     @Test
@@ -128,7 +131,7 @@ class DogeUserServiceTest {
 
         DogeUser user = userService.getConfirmedUser(username);
 
-        assertEquals(username, user.getUsername());
+        assertThat(user.getUsername()).isEqualTo(username);
     }
 
     @Test
@@ -140,8 +143,9 @@ class DogeUserServiceTest {
                         .roles(List.of(DogeRole.builder().level(DogeRoleLevel.NOT_CONFIRMED_USER).build()))
                         .build()));
 
-        DogeHttpException thrown = assertThrows(DogeHttpException.class, () -> userService.getConfirmedUser(username));
-        assertEquals("USER_NOT_CONFIRMED", thrown.getMessage());
+        assertThatThrownBy(() -> userService.getConfirmedUser(username))
+                .isInstanceOf(DogeHttpException.class)
+                .hasMessage("USER_NOT_CONFIRMED");
     }
 
     @Test
@@ -150,7 +154,8 @@ class DogeUserServiceTest {
         when(userRepository.findByUsername(username))
                 .thenReturn(Optional.empty());
 
-        assertThrows(UsernameNotFoundException.class, () -> userService.getConfirmedUser(username));
+        assertThatThrownBy(() -> userService.getConfirmedUser(username))
+                .isInstanceOf(UsernameNotFoundException.class);
     }
 
     @Test
@@ -177,19 +182,18 @@ class DogeUserServiceTest {
 
         DogeUser user = userService.createUser(username, email, password);
 
-        assertEquals(username, user.getUsername());
-        assertEquals(email, user.getEmail());
-        assertTrue(passwordEncoder.matches(password, user.getEncodedPassword()));
-        assertFalse(user.isConfirmed());
-        assertEquals(publicKey, user.getDogePublicKey());
-        verify(userVerifier, times(1)).verifyUsername(username);
-        verify(userVerifier, times(1)).verifyEmail(email);
-        verify(userVerifier, times(1)).verifyPassword(password);
-        verify(userVerifier, times(1)).verifyDogePublicKey(publicKey);
-        verify(modelValidatorService, atLeast(1)).validate(any(DogeUser.class));
-        verify(userRepository, atLeast(1)).save(any(DogeUser.class));
-        verify(imageGeneratorService, times(1)).generateProfilePic(username);
-        verify(cloudStorageService, times(1)).upload(generatedImageBytes, username + ".png", "user");
+        assertThat(user.getUsername()).isEqualTo(username);
+        assertThat(user.getEmail()).isEqualTo(email);
+        assertThat(user.getEncodedPassword()).matches(x -> passwordEncoder.matches(password, x));
+        assertThat(user.isConfirmed()).isFalse();
+        assertThat(user.getDogePublicKey()).isEqualTo(publicKey);
+        verify(userVerifier).verifyUsername(username);
+        verify(userVerifier).verifyEmail(email);
+        verify(userVerifier).verifyPassword(password);
+        verify(modelValidatorService, atLeastOnce()).validate(any(DogeUser.class));
+        verify(userRepository, atLeastOnce()).save(any(DogeUser.class));
+        verify(imageGeneratorService).generateProfilePic(username);
+        verify(cloudStorageService).upload(generatedImageBytes, username + ".png", "user");
     }
 
     @Test
@@ -215,17 +219,17 @@ class DogeUserServiceTest {
 
         DogeUser user = userService.createUser(username, email, password);
 
-        assertEquals(username, user.getUsername());
-        assertEquals(email, user.getEmail());
-        assertTrue(passwordEncoder.matches(password, user.getEncodedPassword()));
-        assertFalse(user.isConfirmed());
-        verify(userVerifier, times(1)).verifyUsername(username);
-        verify(userVerifier, times(1)).verifyEmail(email);
-        verify(userVerifier, times(1)).verifyPassword(password);
+        assertThat(user.getUsername()).isEqualTo(username);
+        assertThat(user.getEmail()).isEqualTo(email);
+        assertThat(user.getEncodedPassword()).matches(x -> passwordEncoder.matches(password, x));
+        assertThat(user.isConfirmed()).isFalse();
+        verify(userVerifier).verifyUsername(username);
+        verify(userVerifier).verifyEmail(email);
+        verify(userVerifier).verifyPassword(password);
         verify(modelValidatorService, atLeastOnce()).validate(any(DogeUser.class));
         verify(userRepository, atLeastOnce()).save(any(DogeUser.class));
-        verify(imageGeneratorService, times(1)).generateProfilePic(username);
-        verify(cloudStorageService, times(0)).upload(any(), any(), any());
+        verify(imageGeneratorService).generateProfilePic(username);
+        verify(cloudStorageService, never()).upload(any(), any(), any());
     }
 
     @Test
@@ -254,17 +258,17 @@ class DogeUserServiceTest {
 
         DogeUser user = userService.createUser(username, email, password);
 
-        assertEquals(username, user.getUsername());
-        assertEquals(email, user.getEmail());
-        assertTrue(passwordEncoder.matches(password, user.getEncodedPassword()));
-        assertFalse(user.isConfirmed());
-        verify(userVerifier, times(1)).verifyUsername(username);
-        verify(userVerifier, times(1)).verifyEmail(email);
-        verify(userVerifier, times(1)).verifyPassword(password);
+        assertThat(user.getUsername()).isEqualTo(username);
+        assertThat(user.getEmail()).isEqualTo(email);
+        assertThat(user.getEncodedPassword()).matches(x -> passwordEncoder.matches(password, x));
+        assertThat(user.isConfirmed()).isFalse();
+        verify(userVerifier).verifyUsername(username);
+        verify(userVerifier).verifyEmail(email);
+        verify(userVerifier).verifyPassword(password);
         verify(modelValidatorService, atLeastOnce()).validate(any(DogeUser.class));
         verify(userRepository, atLeastOnce()).save(any(DogeUser.class));
-        verify(imageGeneratorService, times(1)).generateProfilePic(username);
-        verify(cloudStorageService, times(1)).upload(generatedImageBytes, username + ".png", "user");
+        verify(imageGeneratorService).generateProfilePic(username);
+        verify(cloudStorageService).upload(generatedImageBytes, username + ".png", "user");
     }
 
     @Test
@@ -287,11 +291,11 @@ class DogeUserServiceTest {
 
         DogeUser updatedUser = userService.changeUserEmail(newEmail, user);
 
-        assertEquals(newEmail, updatedUser.getEmail());
-        assertFalse(user.isConfirmed());
-        verify(userVerifier, times(1)).verifyEmail(newEmail);
-        verify(modelValidatorService, times(1)).validate(user);
-        verify(applicationEventPublisher, times(1)).publishEvent(any(OnEmailConfirmationNeededEvent.class));
+        assertThat(updatedUser.getEmail()).isEqualTo(newEmail);
+        assertThat(user.isConfirmed()).isFalse();
+        verify(userVerifier).verifyEmail(newEmail);
+        verify(modelValidatorService).validate(user);
+        verify(applicationEventPublisher).publishEvent(any(OnEmailConfirmationNeededEvent.class));
     }
 
     @Test
@@ -314,13 +318,13 @@ class DogeUserServiceTest {
 
         DogeUser updatedUser = userService.changeUserEmail(newEmail, user);
 
-        assertEquals(newEmail, updatedUser.getEmail());
-        assertTrue(user.isAdminOrModerator());
-        assertFalse(user.isConfirmed());
-        verify(userVerifier, times(1)).verifyEmail(newEmail);
-        verify(modelValidatorService, times(1)).validate(user);
-        verify(userRepository, times(1)).save(any(DogeUser.class));
-        verify(applicationEventPublisher, times(1)).publishEvent(any(OnEmailConfirmationNeededEvent.class));
+        assertThat(updatedUser.getEmail()).isEqualTo(newEmail);
+        assertThat(updatedUser.isAdminOrModerator()).isTrue();
+        assertThat(updatedUser.isConfirmed()).isFalse();
+        verify(userVerifier).verifyEmail(newEmail);
+        verify(modelValidatorService).validate(user);
+        verify(userRepository).save(any(DogeUser.class));
+        verify(applicationEventPublisher).publishEvent(any(OnEmailConfirmationNeededEvent.class));
     }
 
     @Test
@@ -340,10 +344,9 @@ class DogeUserServiceTest {
 
         DogeUser updatedUser = userService.changeDogePublicKey(newPublicKey, user);
 
-        assertEquals(newPublicKey, updatedUser.getDogePublicKey());
-        verify(userVerifier, times(1)).verifyDogePublicKey(newPublicKey);
-        verify(modelValidatorService, times(1)).validate(user);
-        verify(userRepository, times(1)).save(any(DogeUser.class));
+        assertThat(updatedUser.getDogePublicKey()).isEqualTo(newPublicKey);
+        verify(modelValidatorService).validate(user);
+        verify(userRepository).save(any(DogeUser.class));
     }
 
     @Test
@@ -361,13 +364,14 @@ class DogeUserServiceTest {
 
         userService.changePassword(oldPassword, newPassword, confirmPassword, username);
 
-        verify(userVerifier, times(1)).verifyPassword(newPassword);
+        verify(userVerifier).verifyPassword(newPassword);
+        verify(modelValidatorService).validate(any(DogeUser.class));
 
         ArgumentCaptor<DogeUser> userArgumentCaptor = ArgumentCaptor.forClass(DogeUser.class);
-        verify(modelValidatorService, times(1)).validate(any(DogeUser.class));
-        verify(userRepository, times(1)).save(userArgumentCaptor.capture());
+        verify(userRepository).save(userArgumentCaptor.capture());
+
         final DogeUser capturedUser = userArgumentCaptor.getValue();
-        assertTrue(passwordEncoder.matches(newPassword, capturedUser.getEncodedPassword()));
+        assertThat(capturedUser.getEncodedPassword()).matches(x -> passwordEncoder.matches(newPassword, x));
     }
 
     @Test
@@ -383,11 +387,11 @@ class DogeUserServiceTest {
                         .encodedPassword(passwordEncoder.encode(oldPassword))
                         .build()));
 
-        DogeHttpException thrown = assertThrows(DogeHttpException.class, () ->
-                userService.changePassword(oldPassword, newPassword, confirmPassword, username));
+        assertThatThrownBy(() -> userService.changePassword(oldPassword, newPassword, confirmPassword, username))
+                .isInstanceOf(DogeHttpException.class)
+                .hasMessage("PASSWORDS_DOES_NOT_MATCH");
 
-        assertEquals("PASSWORDS_DOES_NOT_MATCH", thrown.getMessage());
-        verify(userRepository, times(0)).save(any());
+        verify(userRepository, never()).save(any());
     }
 
     @Test
@@ -404,11 +408,11 @@ class DogeUserServiceTest {
                         .encodedPassword(passwordEncoder.encode(oldPassword))
                         .build()));
 
-        DogeHttpException thrown = assertThrows(DogeHttpException.class, () ->
-                userService.changePassword(wrongOldPassword, newPassword, confirmPassword, username));
+        assertThatThrownBy(() -> userService.changePassword(wrongOldPassword, newPassword, confirmPassword, username))
+                .isInstanceOf(DogeHttpException.class)
+                .hasMessage("WRONG_OLD_PASSWORD");
 
-        assertEquals("WRONG_OLD_PASSWORD", thrown.getMessage());
-        verify(userRepository, times(0)).save(any());
+        verify(userRepository, never()).save(any());
     }
 
     @Test
@@ -424,11 +428,11 @@ class DogeUserServiceTest {
                         .encodedPassword(passwordEncoder.encode(oldPassword))
                         .build()));
 
-        DogeHttpException thrown = assertThrows(DogeHttpException.class, () ->
-                userService.changePassword(oldPassword, newPassword, confirmPassword, username));
+        assertThatThrownBy(() -> userService.changePassword(oldPassword, newPassword, confirmPassword, username))
+                .isInstanceOf(DogeHttpException.class)
+                .hasMessage("NEW_PASSWORD_AND_OLD_PASSWORD_ARE_THE_SAME");
 
-        assertEquals("NEW_PASSWORD_AND_OLD_PASSWORD_ARE_THE_SAME", thrown.getMessage());
-        verify(userRepository, times(0)).save(any());
+        verify(userRepository, never()).save(any());
     }
 
     @Test
@@ -443,8 +447,7 @@ class DogeUserServiceTest {
 
         userService.setProfileImage(multipartFile, username);
 
-        verify(cloudStorageService, times(1))
-                .upload(multipartFile.getBytes(), username + ".png", "user");
+        verify(cloudStorageService).upload(multipartFile.getBytes(), username + ".png", "user");
     }
 
     @Test
@@ -463,12 +466,11 @@ class DogeUserServiceTest {
                         .username(username)
                         .build()));
 
-        DogeHttpException thrown = assertThrows(DogeHttpException.class, () ->
-                userService.setProfileImage(multipartFile, username));
+        assertThatThrownBy(() -> userService.setProfileImage(multipartFile, username))
+                .isInstanceOf(DogeHttpException.class)
+                .hasMessage("CAN_NOT_READ_IMAGE_BYTES");
 
-        assertEquals("CAN_NOT_READ_IMAGE_BYTES", thrown.getMessage());
-        verify(cloudStorageService, times(0))
-                .upload(any(), any(), any());
+        verify(cloudStorageService, never()).upload(any(), any(), any());
     }
 
     @Test
@@ -485,12 +487,11 @@ class DogeUserServiceTest {
                 .when(cloudStorageService)
                 .upload(multipartFile.getBytes(), username + ".png", "user");
 
-        DogeHttpException thrown = assertThrows(DogeHttpException.class, () ->
-                userService.setProfileImage(multipartFile, username));
+        assertThatThrownBy(() -> userService.setProfileImage(multipartFile, username))
+                .isInstanceOf(DogeHttpException.class)
+                .hasMessage("CAN_NOT_SAVE_IMAGE");
 
-        assertEquals("CAN_NOT_SAVE_IMAGE", thrown.getMessage());
-        verify(cloudStorageService, times(1))
-                .upload(multipartFile.getBytes(), username + ".png", "user");
+        verify(cloudStorageService).upload(multipartFile.getBytes(), username + ".png", "user");
     }
 
     private DogeRole getRole(DogeRoleLevel dogeRoleLevel) {

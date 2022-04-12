@@ -1,11 +1,10 @@
 package xyz.suchdoge.webapi.service;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class HashingServiceTest {
 
@@ -18,7 +17,7 @@ class HashingServiceTest {
         String hashed1 = hashingService.hashString(string);
         String hashed2 = hashingService.hashString(string);
 
-        assertEquals(hashed1, hashed2);
+        assertThat(hashed1).isEqualTo(hashed2);
     }
 
     @ParameterizedTest
@@ -29,6 +28,6 @@ class HashingServiceTest {
         String hashed1 = hashingService.hashString(newString);
         String hashed2 = hashingService.hashString(string);
 
-        assertNotEquals(hashed1, hashed2);
+        assertThat(hashed1).isNotEqualTo(hashed2);
     }
 }

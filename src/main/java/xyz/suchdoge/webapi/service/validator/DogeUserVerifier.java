@@ -8,7 +8,8 @@ import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.repository.DogeUserRepository;
 
 /**
- * Service for validating user information
+ * Service for validating user information.
+ *
  * @author Nikita
  */
 @Service
@@ -19,41 +20,42 @@ public class DogeUserVerifier {
 
     private final DogeUserRepository dogeUserRepository;
     private final EmailVerifier emailVerifier;
-
-    @Value("${BLOCK_IO_APP_WALLET_LABEL}")
-    private String appWalletLabel;
+    private final String appWalletLabel;
 
     /**
-     * Constructs a UserVerifier with needed dependencies
+     * Constructs a UserVerifier with needed dependencies.
      */
-    public DogeUserVerifier(DogeUserRepository dogeUserRepository, EmailVerifier emailVerifier) {
+    public DogeUserVerifier(DogeUserRepository dogeUserRepository,
+                            EmailVerifier emailVerifier,
+                            @Value("${application.blockchain.doge.app-wallet-label}") String appWalletLabel) {
         this.dogeUserRepository = dogeUserRepository;
         this.emailVerifier = emailVerifier;
+        this.appWalletLabel = appWalletLabel;
     }
 
     /**
-     * Verify that provided username is valid
+     * Verify that provided username is valid.
+     *
      * @param username the username to validate.
-     * @throws DogeHttpException DOGE_USER_USERNAME_INVALID if is not valid username
-     * @throws DogeHttpException DOGE_USER_USERNAME_EXISTS if account with this username already exists
+     * @throws DogeHttpException DOGE_USER_USERNAME_INVALID if is not valid username.
+     * @throws DogeHttpException DOGE_USER_USERNAME_EXISTS if account with this username already exists.
      */
     public void verifyUsername(String username) throws DogeHttpException {
-        // todo add more validations
-        if (username == null || username.isBlank()) {
+        if (username == null
+                || username.isBlank()
+                || username.trim().equals(this.appWalletLabel)
+                || username.trim().contains(" ")) {
             throw new DogeHttpException("DOGE_USER_USERNAME_INVALID", HttpStatus.BAD_REQUEST);
         }
 
         if (dogeUserRepository.existsByUsername(username.trim())) {
             throw new DogeHttpException("DOGE_USER_USERNAME_EXISTS", HttpStatus.BAD_REQUEST);
         }
-
-        if (username.trim().equals(this.appWalletLabel)) {
-            throw new DogeHttpException("DOGE_USER_USERNAME_INVALID", HttpStatus.BAD_REQUEST);
-        }
     }
 
     /**
      * Verify that provided email is valid.
+     *
      * @param email the email to validate.
      * @throws DogeHttpException DOGE_USER_EMAIL_INVALID if is not valid email.
      * @throws DogeHttpException DOGE_USER_EMAIL_EXISTS if account with this email already exists.
@@ -69,13 +71,14 @@ public class DogeUserVerifier {
     }
 
     /**
-     * Verify that provided password is valid
+     * Verify that provided password is valid.
+     *
      * @param password the password to validate.
-     * @throws DogeHttpException DOGE_USER_PASSWORD_NULL if password is null or empty
-     * @throws DogeHttpException DOGE_USER_PASSWORD_TOO_SHORT if password is less than {@value PASSWORD_MIN_LENGTH} characters
-     * @throws DogeHttpException DOGE_USER_PASSWORD_TOO_LONG if password is more than {@value PASSWORD_MAX_LENGTH} characters
-     * @throws DogeHttpException DOGE_USER_PASSWORD_NO_DIGITS if password contains no digits
-     * @throws DogeHttpException DOGE_USER_PASSWORD_NO_ALPHABETIC_CHARACTERS if password contains no alphabetic characters
+     * @throws DogeHttpException DOGE_USER_PASSWORD_NULL if password is null or empty.
+     * @throws DogeHttpException DOGE_USER_PASSWORD_TOO_SHORT if password is less than {@value PASSWORD_MIN_LENGTH} characters.
+     * @throws DogeHttpException DOGE_USER_PASSWORD_TOO_LONG if password is more than {@value PASSWORD_MAX_LENGTH} characters.
+     * @throws DogeHttpException DOGE_USER_PASSWORD_NO_DIGITS if password contains no digits.
+     * @throws DogeHttpException DOGE_USER_PASSWORD_NO_ALPHABETIC_CHARACTERS if password contains no alphabetic characters.
      */
     public void verifyPassword(String password) throws DogeHttpException {
         if (Strings.isNullOrEmpty(password)) {
@@ -90,28 +93,14 @@ public class DogeUserVerifier {
             throw new DogeHttpException("DOGE_USER_PASSWORD_TOO_LONG", HttpStatus.BAD_REQUEST);
         }
 
-        boolean hasDigits = password.chars()
-                .anyMatch(Character::isDigit);
+        boolean hasDigits = password.chars().anyMatch(Character::isDigit);
         if (!hasDigits) {
             throw new DogeHttpException("DOGE_USER_PASSWORD_NO_DIGITS", HttpStatus.BAD_REQUEST);
         }
 
-        boolean hasAlphabeticCharacters = password.chars()
-                .anyMatch(Character::isAlphabetic);
+        boolean hasAlphabeticCharacters = password.chars().anyMatch(Character::isAlphabetic);
         if (!hasAlphabeticCharacters) {
             throw new DogeHttpException("DOGE_USER_PASSWORD_NO_ALPHABETIC_CHARACTERS", HttpStatus.BAD_REQUEST);
         }
-    }
-
-    /**
-     * Verify that provided public key is valid
-     * @param publicKey the public key to validate.
-     * @throws DogeHttpException DOGE_USER_PUBLIC_KEY_INVALID if public key is invalid
-     */
-    public void verifyDogePublicKey(String publicKey) throws DogeHttpException {
-        // todo add validation
-//        if (publicKey == null) {
-//            throw new DogeHttpException("DOGE_USER_PUBLIC_KEY_INVALID", HttpStatus.BAD_REQUEST);
-//        }
     }
 }

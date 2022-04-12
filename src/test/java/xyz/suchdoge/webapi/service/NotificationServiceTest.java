@@ -23,7 +23,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -80,16 +81,15 @@ class NotificationServiceTest {
 
         notificationService.pushNotificationTo(notification, user);
 
-        verify(modelValidatorService, times(1)).validate(notification);
+        verify(modelValidatorService).validate(notification);
 
         ArgumentCaptor<Notification> notificationArgumentCaptor = ArgumentCaptor.forClass(Notification.class);
-        verify(notificationRepository, times(1)).save(notificationArgumentCaptor.capture());
-        assertEquals(user, notificationArgumentCaptor.getValue().getUser());
+        verify(notificationRepository).save(notificationArgumentCaptor.capture());
+        assertThat(notificationArgumentCaptor.getValue().getUser()).isEqualTo(user);
 
         ArgumentCaptor<NotificationResponseDto> dtoArgumentCaptor = ArgumentCaptor.forClass(NotificationResponseDto.class);
-        verify(webSocketService, times(1))
-                .sendTo(eq(username), eq(notificationDestination), dtoArgumentCaptor.capture());
-        assertNotNull(dtoArgumentCaptor.getValue());
+        verify(webSocketService).sendTo(eq(username), eq(notificationDestination), dtoArgumentCaptor.capture());
+        assertThat(dtoArgumentCaptor.getValue()).isNotNull();
     }
 
     @Test
@@ -114,9 +114,9 @@ class NotificationServiceTest {
                 .thenReturn(notifications);
 
         Collection<Notification> notificationsFromService = notificationService.getAllNotifications(username);
-        assertArrayEquals(notifications.toArray(), notificationsFromService.toArray());
+        assertThat(notificationsFromService).containsExactlyElementsOf(notifications);
     }
-    
+
     @Test
     @DisplayName("Should delete all notifications correctly")
     void shouldDeleteAllNotificationsCorrectly() {
@@ -137,21 +137,14 @@ class NotificationServiceTest {
         notificationService.deleteAll(idsToDelete, username);
 
         ArgumentCaptor<List<Notification>> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
-        verify(notificationRepository, times(1)).deleteAll(listArgumentCaptor.capture());
+        verify(notificationRepository).deleteAll(listArgumentCaptor.capture());
         Collection<Notification> notificationsToDelete = listArgumentCaptor.getValue();
 
-        Notification[] expected = new Notification[] {
-                Notification.builder().id(1L).build(),
-                Notification.builder().id(2L).build(),
-                Notification.builder().id(3L).build(),
-        };
-
-        assertEquals(3, notificationsToDelete.size());
-        assertTrue(notificationsToDelete.stream()
-                .map(Notification::getId)
-                .collect(Collectors.toList())
-                .containsAll(Arrays.stream(expected)
-                        .map(Notification::getId)
-                        .collect(Collectors.toList())));
+        assertThat(notificationsToDelete.size()).isEqualTo(3);
+        assertThat(notificationsToDelete)
+                .hasSize(3)
+                .contains(Notification.builder().id(1L).build(),
+                        Notification.builder().id(2L).build(),
+                        Notification.builder().id(3L).build());
     }
 }

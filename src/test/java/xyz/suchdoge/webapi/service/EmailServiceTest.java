@@ -6,26 +6,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.service.register.RegisterProps;
 import xyz.suchdoge.webapi.service.validator.EmailVerifier;
 
-import java.util.Arrays;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
+@EnableConfigurationProperties()
 class EmailServiceTest {
-    static {
-        System.setProperty("spring.mail.username", "suchdoge@test.com");
-    }
-
     @Mock
     JavaMailSender mailSender;
     @Mock
@@ -33,10 +29,9 @@ class EmailServiceTest {
     @Mock
     RegisterProps registerProps;
 
-    EmailService emailService;
+    String businessEmail = "doge@test.com";
 
-    @Value("${spring.mail.username}")
-    String businessEmail;
+    EmailService emailService;
 
     String email = "test@dev.com";
     String subject = "test mail";
@@ -44,7 +39,7 @@ class EmailServiceTest {
 
     @BeforeEach
     void initEmailService() {
-        emailService = new EmailService(mailSender, emailVerifier, registerProps);
+        emailService = new EmailService(mailSender, emailVerifier, registerProps, businessEmail);
     }
 
     @Test
@@ -54,16 +49,16 @@ class EmailServiceTest {
 
         emailService.sendEmail(email, subject, content);
 
-        verify(emailVerifier, times(1)).isValidEmail(email);
+        verify(emailVerifier).isValidEmail(email);
 
         ArgumentCaptor<SimpleMailMessage> simpleMailMessageArgumentCaptor = ArgumentCaptor.forClass(SimpleMailMessage.class);
-        verify(mailSender, times(1)).send(simpleMailMessageArgumentCaptor.capture());
+        verify(mailSender).send(simpleMailMessageArgumentCaptor.capture());
         SimpleMailMessage message = simpleMailMessageArgumentCaptor.getValue();
-        assertEquals(message.getFrom(), businessEmail);
-        assertNotNull(message.getTo());
-        assertTrue(Arrays.stream(message.getTo()).anyMatch(x -> x.equals(email)));
-        assertEquals(message.getSubject(), subject);
-        assertEquals(message.getText(), content);
+
+        assertThat(message.getFrom()).isEqualTo(businessEmail);
+        assertThat(message.getTo()).contains(email);
+        assertThat(message.getSubject()).isEqualTo(subject);
+        assertThat(message.getText()).isEqualTo(content);
     }
 
     @Test
@@ -71,8 +66,9 @@ class EmailServiceTest {
     void shouldThrowExceptionWhenEmailIsNotValid() {
         when(emailVerifier.isValidEmail(email)).thenReturn(false);
 
-        DogeHttpException exception = assertThrows(DogeHttpException.class, () -> emailService.sendEmail(email, subject, content));
-        assertEquals(exception.getMessage(), "SENDING_EMAIL_INVALID");
+        assertThatThrownBy(() -> emailService.sendEmail(email, subject, content))
+                .isInstanceOf(DogeHttpException.class)
+                .hasMessage("SENDING_EMAIL_INVALID");
     }
 
     @Test
@@ -81,8 +77,9 @@ class EmailServiceTest {
         when(emailVerifier.isValidEmail(email)).thenReturn(true);
         doThrow(new RuntimeException()).when(mailSender).send(any(SimpleMailMessage.class));
 
-        DogeHttpException exception = assertThrows(DogeHttpException.class, () -> emailService.sendEmail(email, subject, content));
-        assertEquals(exception.getMessage(), "CAN_NOT_SEND");
+        assertThatThrownBy(() -> emailService.sendEmail(email, subject, content))
+                .isInstanceOf(DogeHttpException.class)
+                .hasMessage("CAN_NOT_SEND");
     }
 
 
@@ -97,6 +94,6 @@ class EmailServiceTest {
 
         emailService.sendToken(user, confirmationToken);
 
-        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+        verify(mailSender).send(any(SimpleMailMessage.class));
     }
 }

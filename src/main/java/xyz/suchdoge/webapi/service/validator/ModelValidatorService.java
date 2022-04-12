@@ -8,10 +8,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Service for validating database models.
+ *
+ * @author Nikita
+ */
 @Service
 public class ModelValidatorService {
     private final Validator validator;
 
+    /**
+     * Constructs a ModelValidatorService with needed dependencies.
+     */
     public ModelValidatorService(Validator validator) {
         this.validator = validator;
     }
@@ -31,11 +39,9 @@ public class ModelValidatorService {
     private <T> List<String> getErrorMessages(T obj) {
         Set<ConstraintViolation<T>> constraintViolations = validator.validate(obj);
 
-        List<String> errorMessages = constraintViolations
+        return constraintViolations
                 .stream()
-                .map(constraintViolation -> constraintViolation.getMessage())
+                .map(ConstraintViolation::getMessage)
                 .collect(Collectors.toList());
-
-        return errorMessages;
     }
 }

@@ -191,8 +191,7 @@ public class DogeUserService implements UserDetailsService {
      * @throws DogeHttpException DOGE_USER_PUBLIC_KEY_INVALID if new doge public key is not.
      */
     public DogeUser changeDogePublicKey(String newDogePublicKey, DogeUser user) throws DogeHttpException {
-        // validate the new public key
-        dogeUserVerifier.verifyDogePublicKey(newDogePublicKey);
+        // todo validate
 
         // update public key
         user.setDogePublicKey(newDogePublicKey.trim());
