@@ -22,6 +22,9 @@ public class EmailService {
     private final RegisterProps registerConfig;
     private final String businessEmail;
 
+    /**
+     * Constructs new instance with needed dependencies.
+     */
     public EmailService(JavaMailSender mailSender,
                         EmailVerifier emailVerifier,
                         RegisterProps registerConfig,
