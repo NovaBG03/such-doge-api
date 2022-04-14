@@ -26,7 +26,7 @@ public class DogeRole {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DogeRole dogeRole = (DogeRole) o;
-        return Objects.equals(id, dogeRole.id) && level == dogeRole.level;
+        return Objects.equals(id, dogeRole.id) && level.equals(dogeRole.level);
     }
 
     @Override

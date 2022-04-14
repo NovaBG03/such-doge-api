@@ -59,7 +59,7 @@ public class DogeUserController {
     @PostMapping("/requestActivation")
     public RequestActivationResponseDto requestActivation(Principal principal) {
         return new RequestActivationResponseDto(
-                this.registerService.resentActivationLink(principal.getName()));
+                this.registerService.resendActivationLink(principal.getName()));
     }
 
     @PostMapping("/activate/{token}")

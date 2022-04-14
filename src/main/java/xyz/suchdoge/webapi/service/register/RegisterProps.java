@@ -24,5 +24,5 @@ public class RegisterProps {
     /**
      * Minimum delay between sending new email confirmation token.
      */
-    public Long tokenMinimalDelaySeconds;
+    private Long tokenMinimalDelaySeconds;
 }

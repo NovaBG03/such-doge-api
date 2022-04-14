@@ -114,6 +114,7 @@ public class DogeUserService implements UserDetailsService {
      * @param email    email associated with the new account.
      * @param password password for the new account.
      * @return saved to the database user.
+     * @throws DogeHttpException when can not create new user.
      */
     @Transactional
     public DogeUser createUser(String username, String email, String password) throws DogeHttpException {

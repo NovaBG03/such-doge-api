@@ -14,6 +14,11 @@ import xyz.suchdoge.webapi.service.EmailService;
 import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmTokenNoLongerValidEvent;
 import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmationNeededEvent;
 
+/**
+ * Service for managing user registrations.
+ *
+ * @author Nikita
+ */
 @Service
 public class RegisterService {
     private final DogeRoleRepository dogeRoleRepository;
@@ -22,8 +27,11 @@ public class RegisterService {
     private final EmailConfirmationTokenService emailConfirmationTokenService;
     private final EmailService emailService;
     private final ApplicationEventPublisher eventPublisher;
-    private final RegisterProps registerConfig;
+    private final RegisterProps registerProps;
 
+    /**
+     * Constructs new instance with needed dependencies.
+     */
     public RegisterService(DogeRoleRepository dogeRoleRepository,
                            DogeUserRepository dogeUserRepository,
                            DogeUserService dogeUserService,
@@ -36,30 +44,55 @@ public class RegisterService {
         this.emailConfirmationTokenService = emailConfirmationTokenService;
         this.emailService = emailService;
         this.eventPublisher = eventPublisher;
-        this.registerConfig = registerConfig;
+        this.registerProps = registerConfig;
     }
 
-    public DogeUser registerUser(String username, String email, String password) {
+    /**
+     * Creates new user account and sends confirmation.
+     *
+     * @param username new account's username.
+     * @param email    email associated with new account.
+     * @param password password for the new account.
+     * @throws DogeHttpException when can not register new user account.
+     */
+    public void registerUser(String username, String email, String password) throws DogeHttpException {
         DogeUser user = dogeUserService.createUser(username, email, password);
         this.eventPublisher.publishEvent(new OnEmailConfirmationNeededEvent(this, user));
-        return user;
     }
 
+    /**
+     * Send account activation link to user.
+     *
+     * @param user to receive activation link.
+     */
     public void sendActivationLink(DogeUser user) {
         String confirmationToken = emailConfirmationTokenService.createToken(user);
         this.emailService.sendToken(user, confirmationToken);
     }
 
-    public long resentActivationLink(String username) {
+    /**
+     * Resend account activation link to user.
+     *
+     * @param username to receive activation link.
+     * @return minimal seconds delay between activation link requests.
+     * @throws DogeHttpException when activation link is requested too soon.
+     */
+    public long resendActivationLink(String username) throws DogeHttpException {
         final DogeUser user = this.dogeUserService.getUserByUsername(username);
         if (this.emailConfirmationTokenService.canCreateNewToken(user)) {
             this.sendActivationLink(user);
         }
 
-        return registerConfig.tokenMinimalDelaySeconds;
+        return registerProps.getTokenMinimalDelaySeconds();
     }
 
-    public DogeUser activateUser(String token) {
+    /**
+     * Activate user associated with the given activation token.
+     *
+     * @param token activation token.
+     * @throws DogeHttpException when confirmation token is expired or user is already confirmed.
+     */
+    public void activateUser(String token) throws DogeHttpException {
         final EmailConfirmationToken confirmationToken = emailConfirmationTokenService
                 .getConfirmationToken(token);
 
@@ -80,11 +113,9 @@ public class RegisterService {
 
         user.removeRole(DogeRoleLevel.NOT_CONFIRMED_USER);
         user.addRole(this.dogeRoleRepository.getByLevel(DogeRoleLevel.USER));
-        final DogeUser enabledUser = this.dogeUserRepository.save(user);
+        this.dogeUserRepository.save(user);
 
         this.eventPublisher
                 .publishEvent(new OnEmailConfirmTokenNoLongerValidEvent(this, confirmationToken));
-
-        return enabledUser;
     }
 }

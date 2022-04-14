@@ -73,7 +73,7 @@ public class EmailConfirmationTokenService {
                 .collect(Collectors.toSet()));
     }
 
-    public boolean canCreateNewToken(DogeUser user) {
+    public boolean canCreateNewToken(DogeUser user) throws DogeHttpException {
         if (user.isConfirmed()) {
             throw new DogeHttpException("USER_ALREADY_ENABLED", HttpStatus.BAD_REQUEST);
         }
@@ -85,7 +85,7 @@ public class EmailConfirmationTokenService {
         if (optionalToken.isPresent()) {
             EmailConfirmationToken token = optionalToken.get();
             LocalDateTime canCreateNewTokenDateTime =
-                    token.getCreatedAt().plusSeconds(this.registerConfig.tokenMinimalDelaySeconds);
+                    token.getCreatedAt().plusSeconds(this.registerConfig.getTokenMinimalDelaySeconds());
             LocalDateTime nowDateTime = LocalDateTime.now();
 
             if (nowDateTime.isBefore(canCreateNewTokenDateTime)) {
