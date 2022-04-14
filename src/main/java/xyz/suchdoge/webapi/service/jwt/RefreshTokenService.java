@@ -92,7 +92,7 @@ public class RefreshTokenService {
         }
 
         final String username = refreshToken.getUser().getUsername();
-        jwtService.createNewAuthorizationResponseHeader(response, username);
+        jwtService.setAuthorizationResponseHeaderForUser(response, username);
 
         if (refreshToken.isHalfwayExpired()) {
             this.createNewRefreshTokenHeader(response, username);

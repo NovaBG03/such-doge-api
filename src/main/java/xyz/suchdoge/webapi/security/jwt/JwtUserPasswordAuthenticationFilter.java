@@ -54,7 +54,7 @@ public class JwtUserPasswordAuthenticationFilter extends UsernamePasswordAuthent
                                             HttpServletResponse response,
                                             FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException {
-        jwtService.createNewAuthorizationResponseHeader(response, authResult.getName());
+        jwtService.setAuthorizationResponseHeaderForUser(response, authResult.getName());
         refreshTokenService.createNewRefreshTokenHeader(response, authResult.getName());
     }
 

@@ -14,7 +14,7 @@ public class RegisterProps {
     /**
      * Email confirmation token activation url.
      */
-    public String tokenActivationUrl;
+    private String tokenActivationUrl;
 
     /**
      * Email confirmation token expiration in days.

@@ -42,7 +42,7 @@ public class EmailService {
      * @param confirmationToken token to send.
      */
     public void sendToken(DogeUser user, String confirmationToken) {
-        final String registerUrl = registerConfig.tokenActivationUrl + "/" + confirmationToken;
+        final String registerUrl = registerConfig.getTokenActivationUrl() + "/" + confirmationToken;
         final String subject = "Activate your SuchDoge account";
         final String content = "To activate your SuchDoge account click here: " + registerUrl;
 
