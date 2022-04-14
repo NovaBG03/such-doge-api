@@ -124,7 +124,7 @@ class RegisterServiceTest {
 
         when(registerProps.getTokenMinimalDelaySeconds()).thenReturn(minDelaySeconds);
         when(dogeUserService.getUserByUsername(username)).thenReturn(user);
-        when(emailConfirmationTokenService.canCreateNewToken(user)).thenReturn(true);
+        when(emailConfirmationTokenService.isNewActivationTokenAvailable(user)).thenReturn(true);
         when(emailConfirmationTokenService.createToken(user)).thenReturn(confirmationToken);
 
         Long actualMinDelaySeconds = registerService.resendActivationLink(username);
@@ -143,7 +143,7 @@ class RegisterServiceTest {
                 .build();
 
         when(dogeUserService.getUserByUsername(username)).thenReturn(user);
-        when(emailConfirmationTokenService.canCreateNewToken(user)).thenThrow(DogeHttpException.class);
+        when(emailConfirmationTokenService.isNewActivationTokenAvailable(user)).thenThrow(DogeHttpException.class);
 
         assertThatThrownBy(() -> registerService.resendActivationLink(username))
                 .isInstanceOf(DogeHttpException.class);

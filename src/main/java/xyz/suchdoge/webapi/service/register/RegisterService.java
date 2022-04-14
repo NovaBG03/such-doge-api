@@ -79,7 +79,7 @@ public class RegisterService {
      */
     public long resendActivationLink(String username) throws DogeHttpException {
         final DogeUser user = this.dogeUserService.getUserByUsername(username);
-        if (this.emailConfirmationTokenService.canCreateNewToken(user)) {
+        if (this.emailConfirmationTokenService.isNewActivationTokenAvailable(user)) {
             this.sendActivationLink(user);
         }
 
