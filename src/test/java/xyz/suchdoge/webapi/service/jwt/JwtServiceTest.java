@@ -200,9 +200,11 @@ class JwtServiceTest {
         jwtService.setAuthorizationResponseHeaderForUser(httpResponse, username);
 
         verify(httpResponse).addHeader("Access-Control-Expose-Headers", authHeader);
+
         ArgumentCaptor<String> authTokenArgumentCaptor = ArgumentCaptor.forClass(String.class);
         verify(httpResponse).setHeader(anyString(), authTokenArgumentCaptor.capture());
         String authToken = authTokenArgumentCaptor.getValue();
+
         assertThat(authToken)
                 .isNotNull()
                 .contains(authPrefix);

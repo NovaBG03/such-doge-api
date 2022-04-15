@@ -4,11 +4,10 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.service.jwt.RefreshTokenService;
-import xyz.suchdoge.webapi.service.jwt.event.OnTooMuchRefreshTokensForUser;
+import xyz.suchdoge.webapi.service.jwt.event.OnTooManyRefreshTokensForUser;
 
 @Component
-public class RefreshTokenCleanerListener implements ApplicationListener<OnTooMuchRefreshTokensForUser> {
-
+public class RefreshTokenCleanerListener implements ApplicationListener<OnTooManyRefreshTokensForUser> {
     private final RefreshTokenService refreshTokenService;
 
     public RefreshTokenCleanerListener(RefreshTokenService refreshTokenService) {
@@ -16,8 +15,8 @@ public class RefreshTokenCleanerListener implements ApplicationListener<OnTooMuc
     }
 
     @Override
-    public void onApplicationEvent(OnTooMuchRefreshTokensForUser onTooMuchRefreshTokensForUser) {
+    public void onApplicationEvent(OnTooManyRefreshTokensForUser onTooMuchRefreshTokensForUser) {
         final DogeUser user = onTooMuchRefreshTokensForUser.getUser();
-        refreshTokenService.cleanTokens(user);
+        refreshTokenService.clearTokens(user);
     }
 }

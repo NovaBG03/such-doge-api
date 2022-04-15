@@ -68,8 +68,8 @@ public class DogeUserController {
     }
 
     @PostMapping("/refresh/{token}")
-    public void refresh(@PathVariable String token, HttpServletResponse response) {
-        this.refreshTokenService.refreshAccess(token, response);
+    public void refresh(HttpServletResponse response, @PathVariable String token) {
+        this.refreshTokenService.refreshAccess(response, token);
     }
 
     @PatchMapping("/me")

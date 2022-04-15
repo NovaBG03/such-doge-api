@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public abstract class Token {
+public abstract class Token implements Comparable<Token> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,5 +34,20 @@ public abstract class Token {
 
     public boolean isExpired() {
         return createdAt.plus(expirationTime).isBefore(LocalDateTime.now());
+    }
+
+    @Override
+    public int compareTo(@org.jetbrains.annotations.NotNull Token o) {
+        if (!this.getClass().equals(o.getClass())) {
+            return -1;
+        }
+
+        if (this.isExpired() == o.isExpired()) {
+            return this.getCreatedAt().compareTo(o.getCreatedAt());
+        }
+        if (this.isExpired()) {
+            return 1;
+        }
+        return -1;
     }
 }
