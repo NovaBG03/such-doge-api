@@ -21,6 +21,7 @@ import xyz.suchdoge.webapi.service.blockchain.DogeBlockchainService;
 import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmationNeededEvent;
 import xyz.suchdoge.webapi.service.imageGenerator.ImageGeneratorService;
 import xyz.suchdoge.webapi.service.storage.CloudStorageService;
+import xyz.suchdoge.webapi.service.storage.StoragePath;
 import xyz.suchdoge.webapi.service.validator.DogeUserVerifier;
 import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 
@@ -145,7 +146,7 @@ public class DogeUserService implements UserDetailsService {
         // generate personalized profile pic and save it to cloud storage
         try {
             final byte[] profilePic = this.imageGeneratorService.generateProfilePic(savedUser.getUsername());
-            this.cloudStorageService.upload(profilePic, savedUser.getUsername() + ".png", "user");
+            this.cloudStorageService.upload(profilePic, savedUser.getUsername() + ".png", StoragePath.USER);
         } catch (Exception e) {
             // skip profile pic generation
         }
@@ -259,7 +260,7 @@ public class DogeUserService implements UserDetailsService {
         try {
             // try to upload image bytes to cloud storage
             final String imageId = user.getUsername() + ".png";
-            this.cloudStorageService.upload(image.getBytes(), imageId, "user");
+            this.cloudStorageService.upload(image.getBytes(), imageId, StoragePath.USER);
         } catch (IOException e) {
             throw new DogeHttpException("CAN_NOT_READ_IMAGE_BYTES", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {

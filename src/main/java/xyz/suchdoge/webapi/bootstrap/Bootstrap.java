@@ -12,6 +12,7 @@ import xyz.suchdoge.webapi.repository.DogeUserRepository;
 import xyz.suchdoge.webapi.service.blockchain.DogeBlockchainService;
 import xyz.suchdoge.webapi.service.imageGenerator.ImageGeneratorService;
 import xyz.suchdoge.webapi.service.storage.CloudStorageService;
+import xyz.suchdoge.webapi.service.storage.StoragePath;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -119,7 +120,7 @@ public class Bootstrap implements CommandLineRunner {
             cloudStorageService.upload(
                     imageGeneratorService.generateProfilePic(user.getUsername()),
                     user.getUsername() + ".png",
-                    "user");
+                    StoragePath.USER);
         } catch (Exception ignored) {
         }
     }

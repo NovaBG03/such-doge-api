@@ -19,12 +19,18 @@ import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.model.Meme;
 import xyz.suchdoge.webapi.repository.MemeRepository;
 import xyz.suchdoge.webapi.service.storage.CloudStorageService;
+import xyz.suchdoge.webapi.service.storage.StoragePath;
 import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Service for managing memes.
+ *
+ * @author Nikita
+ */
 @Service
 public class MemeService {
     private final MemeRepository memeRepository;
@@ -34,6 +40,9 @@ public class MemeService {
     private final ModelValidatorService modelValidatorService;
     private final MemeMapper memeMapper;
 
+    /**
+     * Constructs new instance with needed dependencies.
+     */
     public MemeService(MemeRepository memeRepository,
                        DogeUserService userService,
                        CloudStorageService cloudStorageService,
@@ -60,6 +69,17 @@ public class MemeService {
         return memeRepository.countByPublisherUsernameAndApprovedOnNotNull(username);
     }
 
+    /**
+     * Get page of memes.
+     *
+     * @param pageRequest       selected page and size.
+     * @param publishFilter     meme publish filter.
+     * @param orderFilter       meme order filter.
+     * @param publisherUsername publisher username or null.
+     * @param principalUsername principal username or null.
+     * @return page of memes.
+     * @throws DogeHttpException when can not get memes.
+     */
     public MemePageResponseDto getMemes(PageRequest pageRequest,
                                         MemePublishFilter publishFilter,
                                         MemeOrderFilter orderFilter,
@@ -111,32 +131,54 @@ public class MemeService {
         return memeMapper.createMemePageResponseDto(memePage, isPublisherOrAdmin);
     }
 
-    public Meme getMeme(Long memeId, String principalUsername) {
-        final Meme meme = this.memeRepository.getOptionalById(memeId)
+    /**
+     * Get a specific meme.
+     *
+     * @param memeId            meme id.
+     * @param principalUsername principal username or null.
+     * @return meme.
+     * @throws DogeHttpException when can not find meme with that id.
+     */
+    public Meme getMeme(Long memeId, String principalUsername) throws DogeHttpException {
+        if (principalUsername == null) {
+            return this.memeRepository.findByIdAndApprovedOnNotNull(memeId)
+                    .orElseThrow(() -> new DogeHttpException("MEME_ID_INVALID", HttpStatus.NOT_FOUND));
+        }
+
+        final Meme meme = this.memeRepository.findById(memeId)
                 .orElseThrow(() -> new DogeHttpException("MEME_ID_INVALID", HttpStatus.NOT_FOUND));
 
         final DogeUser user = this.userService.getUserByUsername(principalUsername);
-        if (meme.isApproved() || user.isAdminOrModerator() || user.equals(meme.getPublisher())) {
+        if (meme.isApproved()
+                || user.isAdminOrModerator()
+                || user.equals(meme.getPublisher())) {
             return meme;
         }
 
         throw new DogeHttpException("MEME_ID_INVALID", HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * Create new meme.
+     *
+     * @param image             meme image.
+     * @param meme              meme object.
+     * @param principalUsername publisher username.
+     * @throws DogeHttpException when can not create meme.
+     */
     @Transactional
-    public void createMeme(MultipartFile image, Meme meme, String principalUsername) {
+    public void createMeme(MultipartFile image, Meme meme, String principalUsername) throws DogeHttpException {
         final DogeUser publisher = this.userService.getConfirmedUser(principalUsername);
 
         try {
             final String imageId = UUID.randomUUID() + ".png";
-            this.cloudStorageService.upload(image.getBytes(), imageId, "meme");
+            this.cloudStorageService.upload(image.getBytes(), imageId, StoragePath.MEME);
             meme.setImageKey(imageId);
         } catch (IOException e) {
             throw new DogeHttpException("CAN_NOT_READ_IMAGE_BYTES", HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            throw new DogeHttpException("CAN_NOT_SAVE_IMAGE", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+        meme.setId(null);
         meme.setPublisher(publisher);
         meme.setApprovedBy(null);
         meme.setApprovedOn(null);
@@ -152,8 +194,15 @@ public class MemeService {
         this.memeRepository.save(meme);
     }
 
+    /**
+     * Approve meme.
+     *
+     * @param memeId            meme id.
+     * @param principalUsername principal username.
+     * @throws DogeHttpException when can not approve meme.
+     */
     @Transactional
-    public void approveMeme(Long memeId, String principalUsername) {
+    public void approveMeme(Long memeId, String principalUsername) throws DogeHttpException {
         final DogeUser principal = this.userService.getConfirmedUser(principalUsername);
         final Meme meme = this.getMeme(memeId, principalUsername);
 
@@ -175,13 +224,45 @@ public class MemeService {
     }
 
     /**
+     * Reject meme upload request and delete it.
+     *
+     * @param memeId            id of the meme to be rejected.
+     * @param principalUsername principal's username.
+     * @throws DogeHttpException when can not reject meme.
+     */
+    @Transactional
+    public void rejectMeme(Long memeId, String principalUsername) throws DogeHttpException {
+        // retrieve meme from database
+        final DogeUser principal = this.userService.getConfirmedUser(principalUsername);
+        final Meme meme = this.getMeme(memeId, principalUsername);
+
+        // check if meme is already approved
+        if (meme.isApproved()) {
+            throw new DogeHttpException("MEME_ALREADY_APPROVED", HttpStatus.BAD_REQUEST);
+        }
+
+        // remove meme from the storage
+        this.removeMeme(meme);
+
+        // push notification to the meme publisher
+        this.notificationService.pushNotificationTo(
+                Notification.builder()
+                        .title("Meme rejected!")
+                        .message("Your meme \"" + meme.getTitle() + "\" has been rejected by " + principal.getUsername())
+                        .category(NotificationCategory.DANGER)
+                        .build(),
+                meme.getPublisher());
+    }
+
+    /**
      * Delete meme.
      *
      * @param memeId            id of the meme to be deleted.
      * @param principalUsername principal's username.
+     * @throws DogeHttpException when can not delete meme.
      */
     @Transactional
-    public void deleteMeme(Long memeId, String principalUsername) {
+    public void deleteMeme(Long memeId, String principalUsername) throws DogeHttpException {
         // retrieve confirmed user and meme from database
         final DogeUser principal = this.userService.getConfirmedUser(principalUsername);
         final Meme meme = this.getMeme(memeId, principalUsername);
@@ -207,41 +288,12 @@ public class MemeService {
     }
 
     /**
-     * Reject meme upload request and delete it.
+     * Remove meme from the database and the cloud storage.
      *
-     * @param memeId            id of the meme to be rejected.
-     * @param principalUsername principal's username.
-     */
-    @Transactional
-    public void rejectMeme(Long memeId, String principalUsername) {
-        // retrieve meme from database
-        final Meme meme = this.getMeme(memeId, principalUsername);
-
-        // check if meme is already approved
-        if (meme.isApproved()) {
-            throw new DogeHttpException("MEME_ALREADY_APPROVED", HttpStatus.BAD_REQUEST);
-        }
-
-        // remove meme from the storage
-        this.removeMeme(meme);
-
-        // push notification to the meme publisher
-        this.notificationService.pushNotificationTo(
-                Notification.builder()
-                        .title("Meme rejected!")
-                        .message("Your meme \"" + meme.getTitle() + "\" has been rejected by " + principalUsername)
-                        .category(NotificationCategory.DANGER)
-                        .build(),
-                meme.getPublisher());
-    }
-
-    /**
-     * Remove meme from the database and the cloud storage
-     *
-     * @param meme meme to be deleted
+     * @param meme meme to be deleted.
      */
     private void removeMeme(Meme meme) {
-        this.cloudStorageService.remove(meme.getImageKey(), "meme");
+        this.cloudStorageService.remove(meme.getImageKey(), StoragePath.MEME);
         this.memeRepository.delete(meme);
     }
 

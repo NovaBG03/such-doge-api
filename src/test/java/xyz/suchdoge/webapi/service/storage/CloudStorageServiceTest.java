@@ -11,8 +11,11 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import xyz.suchdoge.webapi.exception.DogeHttpException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,7 +40,7 @@ class CloudStorageServiceTest {
         String bucketName = "bucket";
         byte[] fileBytes = new byte[10];
         String fileKey = "key";
-        String path = "path";
+        StoragePath path = StoragePath.MEME;
 
         when(awsConfig.getBucketName()).thenReturn(bucketName);
 
@@ -47,7 +50,23 @@ class CloudStorageServiceTest {
         verify(s3Client).putObject(putObjectRequestArgumentCaptor.capture(), any(RequestBody.class));
         PutObjectRequest putObjectRequest = putObjectRequestArgumentCaptor.getValue();
         assertThat(putObjectRequest.bucket()).isEqualTo(bucketName);
-        assertThat(putObjectRequest.key()).isEqualTo(path + "/" + fileKey);
+        assertThat(putObjectRequest.key()).isEqualTo(path.toString().toLowerCase() + "/" + fileKey);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when can not upload file")
+    void shouldThrowExceptionWhenCanNotUploadFile() {
+        String bucketName = "bucket";
+        byte[] fileBytes = new byte[10];
+        String fileKey = "key";
+        StoragePath path = StoragePath.MEME;
+
+        when(awsConfig.getBucketName()).thenReturn(bucketName);
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenThrow(S3Exception.class);
+
+        assertThatThrownBy(() -> cloudStorageService.upload(fileBytes, fileKey, path))
+                .isInstanceOf(DogeHttpException.class)
+                .hasMessage("CAN_NOT_UPLOAD_FILE");
     }
 
     @Test
@@ -55,7 +74,7 @@ class CloudStorageServiceTest {
     void shouldRemoveFileSuccessfully() {
         String bucketName = "bucket";
         String fileKey = "key";
-        String path = "path";
+        StoragePath path = StoragePath.MEME;
 
         when(awsConfig.getBucketName()).thenReturn(bucketName);
 
@@ -65,6 +84,21 @@ class CloudStorageServiceTest {
         verify(s3Client).deleteObject(deleteObjectRequestArgumentCaptor.capture());
         DeleteObjectRequest deleteObjectRequest = deleteObjectRequestArgumentCaptor.getValue();
         assertThat(deleteObjectRequest.bucket()).isEqualTo(bucketName);
-        assertThat(deleteObjectRequest.key()).isEqualTo(path + "/" + fileKey);
+        assertThat(deleteObjectRequest.key()).isEqualTo(path.toString().toLowerCase() + "/" + fileKey);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when can not remove file")
+    void shouldThrowExceptionWhenCanNotRemoveFile() {
+        String bucketName = "bucket";
+        String fileKey = "key";
+        StoragePath path = StoragePath.MEME;
+
+        when(awsConfig.getBucketName()).thenReturn(bucketName);
+        when(s3Client.deleteObject(any(DeleteObjectRequest.class))).thenThrow(S3Exception.class);
+
+        assertThatThrownBy(() -> cloudStorageService.remove(fileKey, path))
+                .isInstanceOf(DogeHttpException.class)
+                .hasMessage("CAN_NOT_REMOVE_FILE");
     }
 }

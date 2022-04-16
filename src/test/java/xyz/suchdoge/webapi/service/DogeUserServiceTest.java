@@ -30,6 +30,7 @@ import xyz.suchdoge.webapi.service.blockchain.DogeBlockchainService;
 import xyz.suchdoge.webapi.service.imageGenerator.ImageGeneratorService;
 import xyz.suchdoge.webapi.service.register.event.OnEmailConfirmationNeededEvent;
 import xyz.suchdoge.webapi.service.storage.CloudStorageService;
+import xyz.suchdoge.webapi.service.storage.StoragePath;
 import xyz.suchdoge.webapi.service.validator.DogeUserVerifier;
 import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 
@@ -193,7 +194,7 @@ class DogeUserServiceTest {
         verify(modelValidatorService, atLeastOnce()).validate(any(DogeUser.class));
         verify(userRepository, atLeastOnce()).save(any(DogeUser.class));
         verify(imageGeneratorService).generateProfilePic(username);
-        verify(cloudStorageService).upload(generatedImageBytes, username + ".png", "user");
+        verify(cloudStorageService).upload(generatedImageBytes, username + ".png", StoragePath.USER);
     }
 
     @Test
@@ -254,7 +255,7 @@ class DogeUserServiceTest {
 
         doThrow(new DogeHttpException("SOMETHING_WENT_WONG", HttpStatus.BAD_REQUEST))
                 .when(cloudStorageService)
-                .upload(generatedImageBytes, username + ".png", "user");
+                .upload(generatedImageBytes, username + ".png", StoragePath.USER);
 
         DogeUser user = userService.createUser(username, email, password);
 
@@ -268,7 +269,7 @@ class DogeUserServiceTest {
         verify(modelValidatorService, atLeastOnce()).validate(any(DogeUser.class));
         verify(userRepository, atLeastOnce()).save(any(DogeUser.class));
         verify(imageGeneratorService).generateProfilePic(username);
-        verify(cloudStorageService).upload(generatedImageBytes, username + ".png", "user");
+        verify(cloudStorageService).upload(generatedImageBytes, username + ".png", StoragePath.USER);
     }
 
     @Test
@@ -447,7 +448,7 @@ class DogeUserServiceTest {
 
         userService.setProfileImage(multipartFile, username);
 
-        verify(cloudStorageService).upload(multipartFile.getBytes(), username + ".png", "user");
+        verify(cloudStorageService).upload(multipartFile.getBytes(), username + ".png", StoragePath.USER);
     }
 
     @Test
@@ -485,13 +486,13 @@ class DogeUserServiceTest {
 
         doThrow(new RuntimeException())
                 .when(cloudStorageService)
-                .upload(multipartFile.getBytes(), username + ".png", "user");
+                .upload(multipartFile.getBytes(), username + ".png", StoragePath.USER);
 
         assertThatThrownBy(() -> userService.setProfileImage(multipartFile, username))
                 .isInstanceOf(DogeHttpException.class)
                 .hasMessage("CAN_NOT_SAVE_IMAGE");
 
-        verify(cloudStorageService).upload(multipartFile.getBytes(), username + ".png", "user");
+        verify(cloudStorageService).upload(multipartFile.getBytes(), username + ".png", StoragePath.USER);
     }
 
     private DogeRole getRole(DogeRoleLevel dogeRoleLevel) {

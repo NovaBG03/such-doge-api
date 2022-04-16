@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface MemeRepository extends JpaRepository<Meme, Long> {
-    Optional<Meme> getOptionalById(Long id);
+    Optional<Meme> findByIdAndApprovedOnNotNull(Long id);
 
 //    long countByApprovedOnNotNull();
 //

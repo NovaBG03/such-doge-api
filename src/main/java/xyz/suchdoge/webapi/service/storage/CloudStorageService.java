@@ -1,10 +1,12 @@
 package xyz.suchdoge.webapi.service.storage;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import xyz.suchdoge.webapi.exception.DogeHttpException;
 
 /**
  * Service for storing images on the clould CDN.
@@ -28,28 +30,38 @@ public class CloudStorageService {
      * Upload file to the clould CDN.
      *
      * @param fileBytes file bytes to upload.
-     * @param fileKey file name.
-     * @param path path to file on the CDN.
+     * @param fileKey   file name.
+     * @param path      path to file on the CDN.
+     * @throws DogeHttpException when can not upload file.
      */
-    public void upload(byte[] fileBytes, String fileKey, String path) {
+    public void upload(byte[] fileBytes, String fileKey, StoragePath path) throws DogeHttpException {
         PutObjectRequest putRequest = PutObjectRequest.builder()
                 .bucket(awsConfig.getBucketName())
-                .key(path + "/" + fileKey)
+                .key(path.toString().toLowerCase() + "/" + fileKey)
                 .build();
-        s3Client.putObject(putRequest, RequestBody.fromBytes(fileBytes));
+        try {
+            s3Client.putObject(putRequest, RequestBody.fromBytes(fileBytes));
+        } catch (Exception e) {
+            throw new DogeHttpException("CAN_NOT_UPLOAD_FILE", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
      * Remove file from the clould CDN.
      *
      * @param fileKey file name.
-     * @param path path to file on the CDN.
+     * @param path    path to file on the CDN.
+     * @throws DogeHttpException when can not remove file.
      */
-    public void remove(String fileKey, String path) {
+    public void remove(String fileKey, StoragePath path) {
         DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
                 .bucket(awsConfig.getBucketName())
-                .key(path + "/" + fileKey)
+                .key(path.toString().toLowerCase() + "/" + fileKey)
                 .build();
-        s3Client.deleteObject(deleteRequest);
+        try {
+            s3Client.deleteObject(deleteRequest);
+        } catch (Exception e) {
+            throw new DogeHttpException("CAN_NOT_REMOVE_FILE", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
