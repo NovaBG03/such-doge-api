@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.security.Principal;
 
 /**
- * User Controler.
+ * User controller.
  *
  * @author Nikita.
  */
