@@ -1,10 +1,12 @@
 package xyz.suchdoge.webapi.dto.user;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserRegisterDto {
     private String username;
     private String email;

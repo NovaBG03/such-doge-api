@@ -158,14 +158,16 @@ public class DogeUserService implements UserDetailsService {
      * Change email of a specific user account.
      *
      * @param newEmail new email to associate with the user account.
-     * @param user     user to be updated.
+     * @param username     user to be updated.
      * @return updated user.
-     * @throws DogeHttpException DOGE_USER_EMAIL_INVALID if is not valid email.
-     * @throws DogeHttpException DOGE_USER_EMAIL_EXISTS if account with this email already exists.
+     * @throws DogeHttpException when can not update email.
      */
-    public DogeUser changeUserEmail(String newEmail, DogeUser user) throws DogeHttpException {
+    public DogeUser changeUserEmail(String newEmail, String username) throws DogeHttpException {
         // validate the new email
         this.dogeUserVerifier.verifyEmail(newEmail);
+
+        // get user
+        final DogeUser user = getUserByUsername(username);
 
         // update email
         user.setEmail(newEmail.trim());

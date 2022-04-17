@@ -3,7 +3,6 @@ package xyz.suchdoge.webapi.controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.suchdoge.webapi.dto.user.*;
-import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.mapper.user.UserMapper;
 import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.service.AchievementsService;
@@ -13,10 +12,14 @@ import xyz.suchdoge.webapi.service.register.RegisterService;
 
 import javax.servlet.http.HttpServletResponse;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Collection;
 
+/**
+ * User Controler.
+ *
+ * @author Nikita.
+ */
 @RestController
+@RequestMapping("/api/v1")
 public class DogeUserController {
     private final RefreshTokenService refreshTokenService;
     private final RegisterService registerService;
@@ -24,6 +27,9 @@ public class DogeUserController {
     private final AchievementsService achievementsService;
     private final UserMapper userMapper;
 
+    /**
+     * Constructs new instance with needed dependencies.
+     */
     public DogeUserController(RefreshTokenService refreshTokenService,
                               RegisterService registerService,
                               DogeUserService dogeUserService,
@@ -72,29 +78,9 @@ public class DogeUserController {
         this.refreshTokenService.refreshAccess(response, token);
     }
 
-    @PatchMapping("/me")
-    public UserInfoPatchResponseDto patchPrincipalInfo(@RequestBody UserInfoDto userInfoDto, Principal principal) {
-        DogeUser user = this.dogeUserService.getUserByUsername(principal.getName());
-        Collection<DogeHttpException> exceptions = new ArrayList<>();
-
-        try {
-            if (userInfoDto.getEmail() != null) {
-                user = this.dogeUserService.changeUserEmail(userInfoDto.getEmail(), user);
-            }
-        } catch (DogeHttpException e) {
-            exceptions.add(e);
-        }
-
-        // todo refactor to only change email
-//        try {
-//            if (userInfoDto.getPublicKey() != null) {
-//                user = this.dogeUserService.changeDogePublicKey(userInfoDto.getPublicKey(), user);
-//            }
-//        } catch (DogeHttpException e) {
-//            exceptions.add(e);
-//        }
-
-        return this.userMapper.dogeUserToUserInfoPatchResponseDto(user, exceptions);
+    @PostMapping("/me/email")
+    public void changeEmail(@RequestBody EmailDto emailDto, Principal principal) {
+        this.dogeUserService.changeUserEmail(emailDto.getEmail(), principal.getName());
     }
 
     @PostMapping("/me/password")
@@ -105,7 +91,7 @@ public class DogeUserController {
                 principal.getName());
     }
 
-    @PostMapping("me/image")
+    @PostMapping("/me/image")
     public void updateProfilePic(@RequestParam MultipartFile image, Principal principal) {
         this.dogeUserService.setProfileImage(image, principal.getName());
     }

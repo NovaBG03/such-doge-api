@@ -24,12 +24,12 @@ public class AutChannelInterceptor implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
         List<String> tokenList = accessor.getNativeHeader(jwtConfig.getAuthTokenHeader());
-        String authorizationToken = null;
-        if(tokenList == null || tokenList.size() < 1) {
+        String authorizationToken;
+        if (tokenList == null || tokenList.size() < 1) {
             return message;
         } else {
             authorizationToken = tokenList.get(0);
-            if(authorizationToken == null) {
+            if (authorizationToken == null) {
                 return message;
             }
         }

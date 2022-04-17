@@ -284,13 +284,15 @@ class DogeUserServiceTest {
                 .roles(Sets.newHashSet(getRole(DogeRoleLevel.USER)))
                 .build();
 
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
         when(roleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER))
                 .thenReturn(getRole(DogeRoleLevel.NOT_CONFIRMED_USER));
 
         when(userRepository.save(any(DogeUser.class)))
                 .then(AdditionalAnswers.returnsFirstArg());
 
-        DogeUser updatedUser = userService.changeUserEmail(newEmail, user);
+        DogeUser updatedUser = userService.changeUserEmail(newEmail, username);
 
         assertThat(updatedUser.getEmail()).isEqualTo(newEmail);
         assertThat(user.isConfirmed()).isFalse();
@@ -311,13 +313,14 @@ class DogeUserServiceTest {
                 .roles(Sets.newHashSet(getRole(DogeRoleLevel.ADMIN), getRole(DogeRoleLevel.MODERATOR)))
                 .build();
 
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
         when(roleRepository.getByLevel(DogeRoleLevel.NOT_CONFIRMED_USER))
                 .thenReturn(getRole(DogeRoleLevel.NOT_CONFIRMED_USER));
 
         when(userRepository.save(any(DogeUser.class)))
                 .then(AdditionalAnswers.returnsFirstArg());
 
-        DogeUser updatedUser = userService.changeUserEmail(newEmail, user);
+        DogeUser updatedUser = userService.changeUserEmail(newEmail, username);
 
         assertThat(updatedUser.getEmail()).isEqualTo(newEmail);
         assertThat(updatedUser.isAdminOrModerator()).isTrue();

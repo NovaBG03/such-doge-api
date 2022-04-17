@@ -60,12 +60,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterAfter(new JwtTokenVerifier(jwtService), JwtUserPasswordAuthenticationFilter.class)
                 .authorizeRequests()
                 .antMatchers("/login",
-                        "/register",
-                        "/activate/*",
-                        "/refresh/*",
-                        "/achievements/*",
+                        "/api/v1/register",
+                        "/api/v1/activate/*",
+                        "/api/v1/refresh/*",
+                        "/api/v1/achievements/*",
                         "/doge-websocket/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/meme").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/v1/meme").permitAll()
                 .anyRequest().authenticated();
     }
 
