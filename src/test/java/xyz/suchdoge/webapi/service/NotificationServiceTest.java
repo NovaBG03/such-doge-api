@@ -17,14 +17,11 @@ import xyz.suchdoge.webapi.repository.NotificationRepository;
 import xyz.suchdoge.webapi.service.validator.ModelValidatorService;
 import xyz.suchdoge.webapi.websocket.WebSocketService;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
