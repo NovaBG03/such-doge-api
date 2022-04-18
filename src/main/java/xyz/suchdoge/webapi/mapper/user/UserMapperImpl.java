@@ -1,14 +1,16 @@
 package xyz.suchdoge.webapi.mapper.user;
 
 import org.springframework.stereotype.Component;
-import xyz.suchdoge.webapi.dto.user.UserInfoPatchResponseDto;
 import xyz.suchdoge.webapi.dto.user.UserInfoResponseDto;
-import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.model.user.DogeUser;
 
-import java.util.Collection;
 import java.util.stream.Collectors;
 
+/**
+ * User mapper.
+ *
+ * @author Nikita
+ */
 @Component
 public class UserMapperImpl implements UserMapper {
     @Override
@@ -25,16 +27,6 @@ public class UserMapperImpl implements UserMapper {
                         .stream()
                         .flatMap(role -> role.getLevel().getAuthorities().stream())
                         .collect(Collectors.toSet()))
-                .build();
-    }
-
-    @Override
-    public UserInfoPatchResponseDto dogeUserToUserInfoPatchResponseDto(DogeUser user, Collection<DogeHttpException> exceptions) {
-        return UserInfoPatchResponseDto.builder()
-                .userInfo(this.dogeUserToUserInfoResponseDto(user))
-                .errMessages(exceptions.stream()
-                        .map(DogeHttpException::getMessage)
-                        .collect(Collectors.toList()))
                 .build();
     }
 }
