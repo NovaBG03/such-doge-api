@@ -13,6 +13,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+/**
+ * Meme mapper.
+ *
+ * @author Nikita
+ */
 @Component
 public class MemeMapperImpl implements MemeMapper {
     @Override
@@ -38,14 +43,14 @@ public class MemeMapperImpl implements MemeMapper {
                 .title(meme.getTitle())
                 .description(meme.getDescription())
                 .imageKey(meme.getImageKey())
-                .publisherUsername(meme.getPublisher().getUsername())
+                .publisherUsername(meme.getPublisher() != null ? meme.getPublisher().getUsername() : null)
                 .publishedOn(meme.isApproved() ? meme.getApprovedOn() : meme.getPublishedOn())
                 .donations(meme.getDonations().stream().mapToDouble(Donation::getAmount).sum())
                 .build();
     }
 
     @Override
-    public ApprovalMemeResponseDto memeToApprovalMemeMyResponseDto(Meme meme) {
+    public ApprovalMemeResponseDto memeToApprovalMemeResponseDto(Meme meme) {
         if (meme == null) {
             return null;
         }
@@ -55,7 +60,7 @@ public class MemeMapperImpl implements MemeMapper {
                 .title(meme.getTitle())
                 .description(meme.getDescription())
                 .imageKey(meme.getImageKey())
-                .publisherUsername(meme.getPublisher().getUsername())
+                .publisherUsername(meme.getPublisher() != null ? meme.getPublisher().getUsername() : null)
                 .publishedOn(meme.isApproved() ? meme.getApprovedOn() : meme.getPublishedOn())
                 .isApproved(meme.isApproved())
                 .donations(meme.getDonations().stream().mapToDouble(Donation::getAmount).sum())
@@ -71,7 +76,7 @@ public class MemeMapperImpl implements MemeMapper {
         List<MemeResponseDto> memeResponseDtos;
         if (isPublisherOrAdmin) {
             memeResponseDtos = StreamSupport.stream(memes.spliterator(), false)
-                    .map(this::memeToApprovalMemeMyResponseDto).
+                    .map(this::memeToApprovalMemeResponseDto).
                     collect(Collectors.toList());
         } else {
             memeResponseDtos = StreamSupport.stream(memes.spliterator(), false)

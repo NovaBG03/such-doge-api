@@ -12,7 +12,7 @@ public interface MemeMapper {
 
     MemeResponseDto memeToMemeResponseDto(Meme meme);
 
-    ApprovalMemeResponseDto memeToApprovalMemeMyResponseDto(Meme meme);
+    ApprovalMemeResponseDto memeToApprovalMemeResponseDto(Meme meme);
 
     MemePageResponseDto createMemePageResponseDto(Page<Meme> memes, boolean isPublisherOrAdmin);
 }
