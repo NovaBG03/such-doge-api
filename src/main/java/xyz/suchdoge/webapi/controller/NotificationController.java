@@ -9,8 +9,13 @@ import xyz.suchdoge.webapi.service.NotificationService;
 import java.security.Principal;
 import java.util.stream.Collectors;
 
+/**
+ * Notification controller.
+ *
+ * @author Nikita
+ */
 @RestController
-@RequestMapping("notification")
+@RequestMapping("/api/v1/notification")
 public class NotificationController {
     private final NotificationService notificationService;
     private final NotificationMapper notificationMapper;
