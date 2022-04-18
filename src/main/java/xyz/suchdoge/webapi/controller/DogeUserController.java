@@ -2,7 +2,12 @@ package xyz.suchdoge.webapi.controller;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import xyz.suchdoge.webapi.dto.user.*;
+import xyz.suchdoge.webapi.dto.user.request.EmailDto;
+import xyz.suchdoge.webapi.dto.user.request.PasswordDto;
+import xyz.suchdoge.webapi.dto.user.request.UserRegisterDto;
+import xyz.suchdoge.webapi.dto.user.response.AchievementsListResponseDto;
+import xyz.suchdoge.webapi.dto.user.response.RequestActivationResponseDto;
+import xyz.suchdoge.webapi.dto.user.response.UserInfoResponseDto;
 import xyz.suchdoge.webapi.mapper.user.UserMapper;
 import xyz.suchdoge.webapi.model.user.DogeUser;
 import xyz.suchdoge.webapi.service.AchievementsService;

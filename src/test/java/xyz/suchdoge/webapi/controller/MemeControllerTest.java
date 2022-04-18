@@ -12,7 +12,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import xyz.suchdoge.webapi.dto.meme.MemeDataDto;
+import xyz.suchdoge.webapi.dto.meme.request.MemeDataDto;
 import xyz.suchdoge.webapi.dto.meme.filter.MemeOrderFilter;
 import xyz.suchdoge.webapi.dto.meme.filter.MemePublishFilter;
 import xyz.suchdoge.webapi.mapper.meme.MemeMapper;

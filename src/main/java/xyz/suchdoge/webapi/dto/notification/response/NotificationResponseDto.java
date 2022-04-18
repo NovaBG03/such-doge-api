@@ -1,4 +1,4 @@
-package xyz.suchdoge.webapi.dto.notification;
+package xyz.suchdoge.webapi.dto.notification.response;
 
 import lombok.*;
 

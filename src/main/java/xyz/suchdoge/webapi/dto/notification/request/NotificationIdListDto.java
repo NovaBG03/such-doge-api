@@ -1,4 +1,4 @@
-package xyz.suchdoge.webapi.dto.notification;
+package xyz.suchdoge.webapi.dto.notification.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,6 +11,6 @@ import java.util.Collection;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class NotificationIdList {
+public class NotificationIdListDto {
     private Collection<Long> notificationIds;
 }

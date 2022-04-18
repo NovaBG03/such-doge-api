@@ -1,4 +1,4 @@
-package xyz.suchdoge.webapi.dto.meme;
+package xyz.suchdoge.webapi.dto.meme.response;
 
 import lombok.*;
 import lombok.experimental.SuperBuilder;

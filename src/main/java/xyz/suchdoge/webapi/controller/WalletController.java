@@ -2,7 +2,8 @@ package xyz.suchdoge.webapi.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import xyz.suchdoge.webapi.dto.blockchain.*;
+import xyz.suchdoge.webapi.dto.blockchain.request.TransactionDto;
+import xyz.suchdoge.webapi.dto.blockchain.response.*;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.mapper.blockchain.BlockchainMapper;
 import xyz.suchdoge.webapi.model.blockchain.TransactionPriority;
@@ -16,7 +17,7 @@ import xyz.suchdoge.webapi.service.blockchain.DogeBlockchainService;
 import java.security.Principal;
 
 @RestController
-@RequestMapping("/wallet")
+@RequestMapping("/api/v1/wallet")
 public class WalletController {
     private final DogeBlockchainService dogeBlockchainService;
     private final TransactionService transactionService;

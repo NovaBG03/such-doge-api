@@ -4,7 +4,7 @@ import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import xyz.suchdoge.webapi.dto.user.UserInfoResponseDto;
+import xyz.suchdoge.webapi.dto.user.response.UserInfoResponseDto;
 import xyz.suchdoge.webapi.model.user.DogeRole;
 import xyz.suchdoge.webapi.model.user.DogeRoleLevel;
 import xyz.suchdoge.webapi.model.user.DogeUser;

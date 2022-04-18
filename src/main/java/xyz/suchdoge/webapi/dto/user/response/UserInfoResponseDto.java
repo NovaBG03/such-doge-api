@@ -1,4 +1,4 @@
-package xyz.suchdoge.webapi.dto.user;
+package xyz.suchdoge.webapi.dto.user.response;
 
 import com.google.common.collect.Sets;
 import lombok.*;

@@ -1,4 +1,4 @@
-package xyz.suchdoge.webapi.dto.user;
+package xyz.suchdoge.webapi.dto.user.request;
 
 import lombok.*;
 

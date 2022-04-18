@@ -1,4 +1,4 @@
-package xyz.suchdoge.webapi.dto.blockchain;
+package xyz.suchdoge.webapi.dto.blockchain.response;
 
 import lombok.*;
 

@@ -8,7 +8,7 @@ import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import xyz.suchdoge.webapi.dto.blockchain.TransactionRequirementsResponseDto;
+import xyz.suchdoge.webapi.dto.blockchain.response.TransactionRequirementsResponseDto;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.model.blockchain.*;
 import xyz.suchdoge.webapi.model.blockchain.response.*;

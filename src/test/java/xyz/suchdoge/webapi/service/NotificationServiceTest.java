@@ -7,7 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import xyz.suchdoge.webapi.dto.notification.NotificationResponseDto;
+import xyz.suchdoge.webapi.dto.notification.response.NotificationResponseDto;
 import xyz.suchdoge.webapi.mapper.notification.NotificationMapper;
 import xyz.suchdoge.webapi.mapper.notification.NotificationMapperImpl;
 import xyz.suchdoge.webapi.model.notification.Notification;

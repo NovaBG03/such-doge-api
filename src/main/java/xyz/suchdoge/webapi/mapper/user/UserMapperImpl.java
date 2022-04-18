@@ -1,7 +1,7 @@
 package xyz.suchdoge.webapi.mapper.user;
 
 import org.springframework.stereotype.Component;
-import xyz.suchdoge.webapi.dto.user.UserInfoResponseDto;
+import xyz.suchdoge.webapi.dto.user.response.UserInfoResponseDto;
 import xyz.suchdoge.webapi.model.user.DogeUser;
 
 import java.util.stream.Collectors;

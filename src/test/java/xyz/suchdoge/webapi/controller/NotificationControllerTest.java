@@ -11,7 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import xyz.suchdoge.webapi.dto.notification.NotificationIdList;
+import xyz.suchdoge.webapi.dto.notification.request.NotificationIdListDto;
 import xyz.suchdoge.webapi.mapper.notification.NotificationMapper;
 import xyz.suchdoge.webapi.model.notification.Notification;
 import xyz.suchdoge.webapi.service.NotificationService;
@@ -70,7 +70,7 @@ class NotificationControllerTest {
     @DisplayName("Should close notifications")
     void shouldCloseNotifications() throws Exception {
         String username = "ivan";
-        NotificationIdList idList = new NotificationIdList(Lists.newArrayList(1L, 2L, 3L));
+        NotificationIdListDto idList = new NotificationIdListDto(Lists.newArrayList(1L, 2L, 3L));
 
         mvc.perform(delete("/api/v1/notification")
                         .with(user(username))

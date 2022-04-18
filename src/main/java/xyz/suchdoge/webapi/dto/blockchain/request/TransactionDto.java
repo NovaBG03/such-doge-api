@@ -1,4 +1,4 @@
-package xyz.suchdoge.webapi.dto.blockchain;
+package xyz.suchdoge.webapi.dto.blockchain.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

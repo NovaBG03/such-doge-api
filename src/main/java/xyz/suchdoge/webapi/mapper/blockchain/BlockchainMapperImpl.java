@@ -1,7 +1,7 @@
 package xyz.suchdoge.webapi.mapper.blockchain;
 
 import org.springframework.stereotype.Component;
-import xyz.suchdoge.webapi.dto.blockchain.*;
+import xyz.suchdoge.webapi.dto.blockchain.response.*;
 import xyz.suchdoge.webapi.model.blockchain.TransactionFee;
 import xyz.suchdoge.webapi.model.blockchain.ValidatedAddress;
 import xyz.suchdoge.webapi.model.blockchain.Wallet;

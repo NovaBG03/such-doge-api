@@ -2,8 +2,8 @@ package xyz.suchdoge.webapi.service;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import xyz.suchdoge.webapi.dto.user.AchievementResponseDto;
-import xyz.suchdoge.webapi.dto.user.AchievementsListResponseDto;
+import xyz.suchdoge.webapi.dto.user.response.AchievementResponseDto;
+import xyz.suchdoge.webapi.dto.user.response.AchievementsListResponseDto;
 import xyz.suchdoge.webapi.service.donation.DonationService;
 
 import java.util.List;

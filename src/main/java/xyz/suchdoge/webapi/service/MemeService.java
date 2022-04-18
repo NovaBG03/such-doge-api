@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import xyz.suchdoge.webapi.dto.meme.MemePageResponseDto;
+import xyz.suchdoge.webapi.dto.meme.response.MemePageResponseDto;
 import xyz.suchdoge.webapi.dto.meme.filter.MemeOrderFilter;
 import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.mapper.meme.MemeMapper;

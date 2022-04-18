@@ -7,7 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import xyz.suchdoge.webapi.dto.user.AchievementsListResponseDto;
+import xyz.suchdoge.webapi.dto.user.response.AchievementsListResponseDto;
 import xyz.suchdoge.webapi.service.donation.DonationService;
 
 import static org.assertj.core.api.Assertions.assertThat;

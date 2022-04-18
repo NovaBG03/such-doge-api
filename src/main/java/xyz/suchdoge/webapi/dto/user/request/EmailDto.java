@@ -1,4 +1,4 @@
-package xyz.suchdoge.webapi.dto.user;
+package xyz.suchdoge.webapi.dto.user.request;
 
 import lombok.*;
 
@@ -8,5 +8,5 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class EmailDto {
-    String email;
+    private String email;
 }

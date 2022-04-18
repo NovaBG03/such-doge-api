@@ -1,8 +1,8 @@
 package xyz.suchdoge.webapi.controller;
 
 import org.springframework.web.bind.annotation.*;
-import xyz.suchdoge.webapi.dto.notification.NotificationIdList;
-import xyz.suchdoge.webapi.dto.notification.NotificationList;
+import xyz.suchdoge.webapi.dto.notification.request.NotificationIdListDto;
+import xyz.suchdoge.webapi.dto.notification.response.NotificationListResponseDto;
 import xyz.suchdoge.webapi.mapper.notification.NotificationMapper;
 import xyz.suchdoge.webapi.service.NotificationService;
 
@@ -26,8 +26,8 @@ public class NotificationController {
     }
 
     @GetMapping
-    public NotificationList getAll(Principal principal) {
-        return new NotificationList(this.notificationService
+    public NotificationListResponseDto getAll(Principal principal) {
+        return new NotificationListResponseDto(this.notificationService
                 .getAllNotifications(principal.getName())
                 .stream()
                 .map(notificationMapper::notificationToNotificationResponseDto)
@@ -35,7 +35,7 @@ public class NotificationController {
     }
 
     @DeleteMapping
-    public void closeNotifications(@RequestBody NotificationIdList idList, Principal principal) {
+    public void closeNotifications(@RequestBody NotificationIdListDto idList, Principal principal) {
         this.notificationService.deleteAll(idList.getNotificationIds(), principal.getName());
     }
 }

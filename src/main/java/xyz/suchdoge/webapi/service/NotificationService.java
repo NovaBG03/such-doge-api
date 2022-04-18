@@ -2,7 +2,7 @@ package xyz.suchdoge.webapi.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import xyz.suchdoge.webapi.dto.notification.NotificationResponseDto;
+import xyz.suchdoge.webapi.dto.notification.response.NotificationResponseDto;
 import xyz.suchdoge.webapi.mapper.notification.NotificationMapper;
 import xyz.suchdoge.webapi.model.notification.Notification;
 import xyz.suchdoge.webapi.model.user.DogeUser;
