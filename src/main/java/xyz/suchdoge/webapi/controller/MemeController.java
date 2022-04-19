@@ -2,12 +2,13 @@ package xyz.suchdoge.webapi.controller;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import xyz.suchdoge.webapi.dto.meme.request.MemeDataDto;
-import xyz.suchdoge.webapi.dto.meme.response.MemePageResponseDto;
 import xyz.suchdoge.webapi.dto.meme.filter.MemeOrderFilter;
 import xyz.suchdoge.webapi.dto.meme.filter.MemePublishFilter;
+import xyz.suchdoge.webapi.dto.meme.request.MemeDataDto;
+import xyz.suchdoge.webapi.dto.meme.response.MemePageResponseDto;
 import xyz.suchdoge.webapi.mapper.meme.MemeMapper;
 import xyz.suchdoge.webapi.service.MemeService;
 
@@ -37,7 +38,7 @@ public class MemeController {
      * @param publishFilter     default APPROVED
      * @param orderFilter       default NEWEST
      * @param publisherUsername default null -> all users
-     * @param principal         principal
+     * @param authentication    user authentication
      * @return meme page response dto.
      */
     @GetMapping()
@@ -46,9 +47,10 @@ public class MemeController {
                                         @RequestParam(defaultValue = "APPROVED") MemePublishFilter publishFilter,
                                         @RequestParam(defaultValue = "NEWEST") MemeOrderFilter orderFilter,
                                         @RequestParam(name = "publisher", required = false) String publisherUsername,
-                                        Principal principal) {
+                                        Authentication authentication) {
         final PageRequest pageRequest = PageRequest.of(page, size);
-        return this.memeService.getMemes(pageRequest, publishFilter, orderFilter, publisherUsername, principal.getName());
+        final String principalUsername = authentication != null ? authentication.getName() : null;
+        return this.memeService.getMemes(pageRequest, publishFilter, orderFilter, publisherUsername, principalUsername);
     }
 
     @PostMapping

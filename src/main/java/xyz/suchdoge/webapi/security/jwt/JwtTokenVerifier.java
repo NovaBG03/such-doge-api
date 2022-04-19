@@ -1,12 +1,9 @@
 package xyz.suchdoge.webapi.security.jwt;
 
-import io.jsonwebtoken.JwtException;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-import xyz.suchdoge.webapi.exception.DogeHttpException;
 import xyz.suchdoge.webapi.service.jwt.JwtService;
 
 import javax.servlet.FilterChain;
@@ -25,23 +22,12 @@ public class JwtTokenVerifier extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request,
                                     @NotNull HttpServletResponse response,
-                                    @NotNull FilterChain filterChain) throws ServletException, IOException {
-        try {
-            final Authentication authentication = this.jwtService.getAuthentication(request);
-            if (authentication == null) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
+                                    @NotNull FilterChain filterChain) throws IOException, ServletException {
+        final Authentication authentication = this.jwtService.getAuthentication(request);
+        if (authentication != null) {
             SecurityContextHolder.getContext().setAuthentication(authentication);
-        } catch (JwtException e) {
-            throw new DogeHttpException("AUTH_TOKEN_INVALID_OR_EXPIRED", HttpStatus.BAD_REQUEST);
         }
 
-        try {
-            filterChain.doFilter(request, response);
-        } catch (Exception e) {
-            response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal server error");
-        }
+        filterChain.doFilter(request, response);
     }
 }

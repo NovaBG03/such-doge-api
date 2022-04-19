@@ -2,6 +2,7 @@ package xyz.suchdoge.webapi.security;
 
 import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -14,9 +15,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import xyz.suchdoge.webapi.exception.ExceptionHandlerFilter;
 import xyz.suchdoge.webapi.security.jwt.JwtTokenVerifier;
 import xyz.suchdoge.webapi.security.jwt.JwtUserPasswordAuthenticationFilter;
 import xyz.suchdoge.webapi.service.jwt.JwtService;
@@ -55,6 +58,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
+                .addFilterBefore(new ExceptionHandlerFilter(), LogoutFilter.class)
                 .addFilter(new JwtUserPasswordAuthenticationFilter(
                         authenticationManager(), jwtService, refreshTokenService))
                 .addFilterAfter(new JwtTokenVerifier(jwtService), JwtUserPasswordAuthenticationFilter.class)

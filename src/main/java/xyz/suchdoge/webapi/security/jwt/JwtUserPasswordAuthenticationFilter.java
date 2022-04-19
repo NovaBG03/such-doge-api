@@ -10,7 +10,6 @@ import xyz.suchdoge.webapi.service.jwt.JwtService;
 import xyz.suchdoge.webapi.service.jwt.RefreshTokenService;
 
 import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -43,8 +42,7 @@ public class JwtUserPasswordAuthenticationFilter extends UsernamePasswordAuthent
             );
 
             return authenticationManager.authenticate(authentication);
-        }
-        catch (IOException ioe) {
+        } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
     }
@@ -53,7 +51,7 @@ public class JwtUserPasswordAuthenticationFilter extends UsernamePasswordAuthent
     protected void successfulAuthentication(HttpServletRequest request,
                                             HttpServletResponse response,
                                             FilterChain chain,
-                                            Authentication authResult) throws IOException, ServletException {
+                                            Authentication authResult) {
         jwtService.setAuthorizationResponseHeaderForUser(response, authResult.getName());
         refreshTokenService.setRefreshTokenHeaderForUser(response, authResult.getName());
     }
